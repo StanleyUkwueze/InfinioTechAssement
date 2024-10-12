@@ -1,0 +1,11 @@
+C:\Users\HP\source\repos\IfinionBackendAssessment.API\IfinionBackendAssessment.Entity\bin\Debug\net8.0\IfinionBackendAssessment.Entity.deps.json
+C:\Users\HP\source\repos\IfinionBackendAssessment.API\IfinionBackendAssessment.Entity\bin\Debug\net8.0\IfinionBackendAssessment.Entity.dll
+C:\Users\HP\source\repos\IfinionBackendAssessment.API\IfinionBackendAssessment.Entity\bin\Debug\net8.0\IfinionBackendAssessment.Entity.pdb
+C:\Users\HP\source\repos\IfinionBackendAssessment.API\IfinionBackendAssessment.Entity\obj\Debug\net8.0\IfinionBackendAssessment.Entity.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\HP\source\repos\IfinionBackendAssessment.API\IfinionBackendAssessment.Entity\obj\Debug\net8.0\IfinionBackendAssessment.Entity.AssemblyInfoInputs.cache
+C:\Users\HP\source\repos\IfinionBackendAssessment.API\IfinionBackendAssessment.Entity\obj\Debug\net8.0\IfinionBackendAssessment.Entity.AssemblyInfo.cs
+C:\Users\HP\source\repos\IfinionBackendAssessment.API\IfinionBackendAssessment.Entity\obj\Debug\net8.0\IfinionBackendAssessment.Entity.csproj.CoreCompileInputs.cache
+C:\Users\HP\source\repos\IfinionBackendAssessment.API\IfinionBackendAssessment.Entity\obj\Debug\net8.0\IfinionBackendAssessment.Entity.dll
+C:\Users\HP\source\repos\IfinionBackendAssessment.API\IfinionBackendAssessment.Entity\obj\Debug\net8.0\refint\IfinionBackendAssessment.Entity.dll
+C:\Users\HP\source\repos\IfinionBackendAssessment.API\IfinionBackendAssessment.Entity\obj\Debug\net8.0\IfinionBackendAssessment.Entity.pdb
+C:\Users\HP\source\repos\IfinionBackendAssessment.API\IfinionBackendAssessment.Entity\obj\Debug\net8.0\ref\IfinionBackendAssessment.Entity.dll
