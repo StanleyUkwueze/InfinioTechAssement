@@ -23,7 +23,6 @@ namespace IfinionBackendAssessment.Service.UserService
                 { 
                     IsSuccessful = false,
                     Message = "User email already exist",
-                    StatusCode = 400
                 };
 
             var user = new User
@@ -39,8 +38,6 @@ namespace IfinionBackendAssessment.Service.UserService
             {
                 IsSuccessful = false,
                 Message = "User creation failed",
-                StatusCode = 400,
-
             };
 
             //var res = await SendMailAsync(createUserRequest.Email, "Welcome Message", 
@@ -51,19 +48,18 @@ namespace IfinionBackendAssessment.Service.UserService
             {
                 IsSuccessful = true,
                 Message = "User created successfully",
-                StatusCode = 200,
                 Data = createdUserResponse
             };
         }
 
         public async Task<ApiResponse<UserResponse>> GetUserByEmail(string email)
         {
-          if(string.IsNullOrEmpty(email)) return new ApiResponse<UserResponse> { IsSuccessful = false, Message = "Email cannot be empty", StatusCode = 400 };
+          if(string.IsNullOrEmpty(email)) return new ApiResponse<UserResponse> { IsSuccessful = false, Message = "Email cannot be empty"};
 
           var user = await userRepository.GetUserByEmailOrUserName(email);
-            if (user is null) return new ApiResponse<UserResponse> { IsSuccessful = false, Message = "No user found with the provided email", StatusCode = 404 };
+            if (user is null) return new ApiResponse<UserResponse> { IsSuccessful = false, Message = "No user found with the provided email" };
             var userResponse = mapper.Map<UserResponse>(user);
-            return new ApiResponse<UserResponse> { IsSuccessful = true, Data = userResponse, Message = "User fetched", StatusCode = 200 };
+            return new ApiResponse<UserResponse> { IsSuccessful = true, Data = userResponse, Message = "User fetched"};
         }
 
         public async Task<ApiResponse<UserResponse>> Login(LoginRequest request)
@@ -88,7 +84,7 @@ namespace IfinionBackendAssessment.Service.UserService
                 Role = user.Role,
                 Token = token
             };
-            return new ApiResponse<UserResponse> { Message = "Successfully logged in", IsSuccessful = true, StatusCode = 200, Data = userResponse };
+            return new ApiResponse<UserResponse> { Message = "Successfully logged in", IsSuccessful = true, Data = userResponse };
             
         }
 
@@ -110,23 +106,20 @@ namespace IfinionBackendAssessment.Service.UserService
                 return new ApiResponse<CreatedUserResponse>
                 {
                     IsSuccessful = false,
-                    Message = "Kindly provide a valid email",
-                    StatusCode = 400
+                    Message = "Kindly provide a valid email"
                 };
             if (string.IsNullOrEmpty(createUserRequest.UserName))
                 return new ApiResponse<CreatedUserResponse>
                 {
                     IsSuccessful = false,
-                    Message = "Kindly provide a valid user name",
-                    StatusCode = 400
+                    Message = "Kindly provide a valid user name"
                 };
 
             if (string.IsNullOrEmpty(createUserRequest.Password))
                 return new ApiResponse<CreatedUserResponse>
                 {
                     IsSuccessful = false,
-                    Message = "Kindly provide a valid Password",
-                    StatusCode = 400
+                    Message = "Kindly provide a valid Password"
                 };
             return new ApiResponse<CreatedUserResponse> { IsSuccessful = true };
         }

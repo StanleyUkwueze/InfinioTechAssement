@@ -2,6 +2,12 @@
 
 /IfinionBackendAssessment.API/bin
 /IfinionBackendAssessment.API/obj
+/IfinionBackendAssessment.DataAccess/bin
+/IfinionBackendAssessment.DataAccess/obj
+/IfinionBackendAssessment.Entity/bin
+/IfinionBackendAssessment.Entity/obj
+/IfinionBackendAssessment.Service/bin
+/IfinionBackendAssessment.Service/obj
 /bin/
 /obj/
 /IfinionBackendAssessment.DataAccess/bin

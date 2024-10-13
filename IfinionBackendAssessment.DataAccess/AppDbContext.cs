@@ -1,7 +1,5 @@
 ﻿using IfinionBackendAssessment.Entity.Entities;
 using Microsoft.EntityFrameworkCore;
-using static System.Formats.Asn1.AsnWriter;
-using System.Net;
 namespace IfinionBackendAssessment.DataAccess
 {
     public class AppDbContext : DbContext
@@ -9,7 +7,6 @@ namespace IfinionBackendAssessment.DataAccess
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
         {
         }
-
         public DbSet<Category> Categories { get; set; }
         public DbSet<Wishlist> Wishlists { get; set; }
         public DbSet<User> Users { get; set; }

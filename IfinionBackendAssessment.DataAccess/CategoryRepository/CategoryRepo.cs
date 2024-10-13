@@ -23,16 +23,16 @@ namespace IfinionBackendAssessment.DataAccess.CategoryRepository
             return await _context.Categories.FirstOrDefaultAsync(c => c.Name == cateName);
         }
 
-        public async Task<Category> Update(UpdateCategoryDto category, string? image)
+        public async Task<Category> Update(UpdateCategoryDto category, int id)
         {
-            var categoryToUpdate = await _context.Categories.FirstOrDefaultAsync(c => c.Id == category.Id);
+            var categoryToUpdate = await _context.Categories.FirstOrDefaultAsync(c => c.Id == id);
             var isSaved = 0;
 
             if (categoryToUpdate is not null)
             {
-                categoryToUpdate.Name = category.Name is not null ? category.Name! : categoryToUpdate.Name;
-                categoryToUpdate.Description = category.Description is not null ? category.Description! : categoryToUpdate.Description;
-                categoryToUpdate.DateUpdated = DateTime.UtcNow;
+                categoryToUpdate.Name = !string.IsNullOrEmpty(category.Name) ? category.Name! : categoryToUpdate.Name;
+                categoryToUpdate.Description = !string.IsNullOrEmpty(category.Description) ? category.Description! : categoryToUpdate.Description;
+                categoryToUpdate.DateUpdated = DateTime.Now;
 
                 _context.Categories.Update(categoryToUpdate);
                 isSaved = await _context.SaveChangesAsync();

@@ -1,16 +1,12 @@
 ﻿using IfinionBackendAssessment.DataAccess.DataTransferObjects;
+using IfinionBackendAssessment.DataAccess.Repository;
 using IfinionBackendAssessment.Entity.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace IfinionBackendAssessment.DataAccess.CategoryRepository
 {
-    public interface ICategoryRepo
+    public interface ICategoryRepo: IGenericRepository<Category>
     {
-        Task<Category> Update(UpdateCategoryDto category, string? image);
+        Task<Category> Update(UpdateCategoryDto category, int id);
         Task<Category?> GetCategoryByName(string cateName);
         IQueryable<Category> GetAllCategories();
     }

@@ -11,6 +11,7 @@ namespace IfinionBackendAssessment.Entity.Entities
         public int CustomerId { get; set; }
         public decimal TotalAmount { get; set; }
         public bool Status { get; set; }
+        public decimal TotalPrice { get; set; }
         public List<CartDetail> CartDetails { get; set; } = [];
     }
 }

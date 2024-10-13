@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace IfinionBackendAssessment.DataAccess.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20241012150207_InitialMigration")]
+    [Migration("20241013164405_InitialMigration")]
     partial class InitialMigration
     {
         /// <inheritdoc />
@@ -262,6 +262,9 @@ namespace IfinionBackendAssessment.DataAccess.Migrations
                         .HasColumnType("bit");
 
                     b.Property<decimal>("TotalAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("TotalPrice")
                         .HasColumnType("decimal(18,2)");
 
                     b.HasKey("Id");

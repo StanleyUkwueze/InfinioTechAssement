@@ -9,7 +9,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IfinionBackendAssessment.En
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IfinionBackendAssessment.DataAccess", "IfinionBackendAssessment.DataAccess\IfinionBackendAssessment.DataAccess.csproj", "{3F3A2BAF-1F6A-41E9-95B5-27C6B0EFA4FF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IfinionBackendAssessment.Service", "IfinionBackendAssessment.Service\IfinionBackendAssessment.Service.csproj", "{694CB0FA-DBF0-4A37-9E5E-E9DB3198315D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IfinionBackendAssessment.Service", "IfinionBackendAssessment.Service\IfinionBackendAssessment.Service.csproj", "{694CB0FA-DBF0-4A37-9E5E-E9DB3198315D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{10D93E0A-7875-42B1-AF6B-4D4BEBB59582}"
+	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

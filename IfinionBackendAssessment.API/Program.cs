@@ -4,6 +4,7 @@ using IfinionBackendAssessment.Service.Common;
 using IfinionBackendAssessment.Service.ServiceExtensions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
@@ -12,7 +13,7 @@ var builder = WebApplication.CreateBuilder(args);
 var config = builder.Configuration;
 
 builder.Services.AddControllers();
-
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(config.GetConnectionString("DefaultConnection")!)
 );
@@ -38,9 +39,8 @@ builder.Services.AddAuthentication(x =>
 builder.Services.AddAuthorization();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-
-
 DependencyInjection.AddApplicationServices(builder.Services);
+
 var mapperConfig = new MapperConfiguration(mc =>
 {
     mc.AddProfile(new MapperProfile());

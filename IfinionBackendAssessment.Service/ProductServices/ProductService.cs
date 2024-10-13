@@ -8,7 +8,6 @@ using IfinionBackendAssessment.Service.Common;
 using IfinionBackendAssessment.Service.DataTransferObjects.Responses;
 using IfinionBackendAssessment.Service.ImageService;
 using Microsoft.AspNetCore.Http;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace IfinionBackendAssessment.Service.ProductServices
 {
@@ -61,7 +60,6 @@ namespace IfinionBackendAssessment.Service.ProductServices
                 response.IsSuccessful = true;
                 response.Message = "Product Added successfully";
                 response.Data = addedProduct;
-                response.StatusCode = 000;
 
                 return response;
             }
@@ -93,7 +91,6 @@ namespace IfinionBackendAssessment.Service.ProductServices
                 {
                     Message = "Product successfully updated",
                     IsSuccessful = true,
-                    StatusCode = 000,
                     Data = ProductToreturn
                 };
             }
@@ -102,7 +99,6 @@ namespace IfinionBackendAssessment.Service.ProductServices
             {
                 Message = "Product update failed",
                 IsSuccessful = false,
-                StatusCode = 500,
                 Errors = new string[] { "Product Update Failed" }
             };
 
