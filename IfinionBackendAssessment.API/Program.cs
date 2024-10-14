@@ -39,6 +39,8 @@ builder.Services.AddAuthentication(x =>
 builder.Services.AddAuthorization();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddHttpClient();
+
 DependencyInjection.AddApplicationServices(builder.Services);
 
 var mapperConfig = new MapperConfiguration(mc =>

@@ -6,10 +6,13 @@ using IfinionBackendAssessment.DataAccess.Repository;
 using IfinionBackendAssessment.DataAccess.UnitOfWork;
 using IfinionBackendAssessment.DataAccess.UserRepository;
 using IfinionBackendAssessment.Service.CategoryServices;
+using IfinionBackendAssessment.Service.Common;
 using IfinionBackendAssessment.Service.ImageService;
 using IfinionBackendAssessment.Service.JWT;
 using IfinionBackendAssessment.Service.MailService;
+using IfinionBackendAssessment.Service.OrderServices;
 using IfinionBackendAssessment.Service.ProductServices;
+using IfinionBackendAssessment.Service.TransactionServices;
 using IfinionBackendAssessment.Service.UserService;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -31,9 +34,10 @@ namespace IfinionBackendAssessment.Service.ServiceExtensions
             Services.AddScoped<ICategoryRepo, CategoryRepo>();
             Services.AddScoped<IUnitOfWork, UnitOfWork>();
             Services.AddScoped<ICartRepo, CartRepo>();
-            //Services.AddScoped<DbContext, AppDbContext>();
+            Services.AddScoped<HelperMethods>();
             Services.AddScoped<ICategoryService, CategoryService>();
-            ;            
+            Services.AddScoped<IOrderService, OrderService>();
+            Services.AddScoped<ITransactionService, TransactionService>();
         }
     }
 }

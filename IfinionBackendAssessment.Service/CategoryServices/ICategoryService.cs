@@ -12,8 +12,8 @@ namespace IfinionBackendAssessment.Service.CategoryServices
 {
     public interface ICategoryService
     {
-        Task<ApiResponse<AddCategoryResponse>> AddCategory(AddCategoryDto categoryDto);
-        Task<ApiResponse<CategoryResponseDto>> UpdateCategory(UpdateCategoryDto updateCategoryDto, int id);
-       Task<ApiResponse<string>> DeleteCategory(int Id);
+        Task<APIResponse<AddCategoryResponse>> AddCategory(AddCategoryDto categoryDto);
+        Task<APIResponse<CategoryResponseDto>> UpdateCategory(UpdateCategoryDto updateCategoryDto, int id);
+       Task<APIResponse<string>> DeleteCategory(int Id);
     }
 }

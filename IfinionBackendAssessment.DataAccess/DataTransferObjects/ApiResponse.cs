@@ -1,13 +1,13 @@
 ﻿namespace IfinionBackendAssessment.DataAccess.Common
 {
-    public class ApiResponse<T>
+    public class APIResponse<T>
     {
-        public ApiResponse(string message, T data = default)
+        public APIResponse(string message, T data = default)
         {
             Message = message;
             Data = data;
         }
-        public ApiResponse()
+        public APIResponse()
         {
 
         }

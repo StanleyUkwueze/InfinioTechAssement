@@ -22,11 +22,11 @@ namespace IfinionBackendAssessment.Service.ProductServices
             _iphotoService = iphotoService;
             _mapper = mapper;
         }
-        public async Task<ApiResponse<ProductResponseDto>> AddProduct(AddProductDto productDto, IFormFile? Image)
+        public async Task<APIResponse<ProductResponseDto>> AddProduct(AddProductDto productDto, IFormFile? Image)
         {
-           var response = new ApiResponse<ProductResponseDto>();
+           var response = new APIResponse<ProductResponseDto>();
 
-            if (productDto == null) return new ApiResponse<ProductResponseDto> { IsSuccessful = false, Message = "Kindly provide data needed" };
+            if (productDto == null) return new APIResponse<ProductResponseDto> { IsSuccessful = false, Message = "Kindly provide data needed" };
 
             var productCategory = await _unitOfWork.CategoryRepo.GetCategoryByName(productDto.CategoryName);
             if (productCategory is null)
@@ -70,10 +70,10 @@ namespace IfinionBackendAssessment.Service.ProductServices
             return response;
         }
 
-        public async Task<ApiResponse<ProductResponseDto>> UpdateProduct(UpdateProductDto updateProductDto,int id, IFormFile? Image)
+        public async Task<APIResponse<ProductResponseDto>> UpdateProduct(UpdateProductDto updateProductDto,int id, IFormFile? Image)
         {
             if (id < 1) 
-                return new ApiResponse<ProductResponseDto> { IsSuccessful = false, Message = "Invalid product id" };
+                return new APIResponse<ProductResponseDto> { IsSuccessful = false, Message = "Invalid product id" };
             var imageUrl = string.Empty;
             var fileToUploadExist = Image is not null && Image.Length > 0;
 
@@ -87,7 +87,7 @@ namespace IfinionBackendAssessment.Service.ProductServices
             if (isProductUpdated.Id > 0)
             {
                 var ProductToreturn = _mapper.Map<ProductResponseDto>(isProductUpdated);
-                return new ApiResponse<ProductResponseDto>
+                return new APIResponse<ProductResponseDto>
                 {
                     Message = "Product successfully updated",
                     IsSuccessful = true,
@@ -95,7 +95,7 @@ namespace IfinionBackendAssessment.Service.ProductServices
                 };
             }
 
-            return new ApiResponse<ProductResponseDto>
+            return new APIResponse<ProductResponseDto>
             {
                 Message = "Product update failed",
                 IsSuccessful = false,
@@ -104,31 +104,31 @@ namespace IfinionBackendAssessment.Service.ProductServices
 
         }
 
-        public async Task<ApiResponse<ProductResponseDto>> GetProductById(int Id)
+        public async Task<APIResponse<ProductResponseDto>> GetProductById(int Id)
         {
             var Product = await _unitOfWork.ProductRepo.GetById(Id);
-            if (Product == null) return new ApiResponse<ProductResponseDto> { Message = "No product found", IsSuccessful = false, Errors = new string[] { "Product Not Found" } };
+            if (Product == null) return new APIResponse<ProductResponseDto> { Message = "No product found", IsSuccessful = false, Errors = new string[] { "Product Not Found" } };
 
             var ProductToReturn = _mapper.Map<ProductResponseDto>(Product);
 
-            return new ApiResponse<ProductResponseDto>
+            return new APIResponse<ProductResponseDto>
             {
                 Message = "Product Successfully fetched",
                 Data = ProductToReturn,
                 IsSuccessful = true
             };
         }
-        public async Task<ApiResponse<string>> DeleteProduct(int Id)
+        public async Task<APIResponse<string>> DeleteProduct(int Id)
         {
             var productToDelete = _unitOfWork.ProductRepo.GetFirstOrDefauly(x => x.Id == Id);
             if (productToDelete != null)
             {
                 var isDeleted = await _unitOfWork.ProductRepo.RemoveAsync(productToDelete);
-                if (!isDeleted) return new ApiResponse<string> { IsSuccessful = true, Message = "Opps! Product could not be deleted", Errors = new string[] { "Product Not Found" } };
-                return new ApiResponse<string> { IsSuccessful = true, Message = "Product deleted successfully" };
+                if (!isDeleted) return new APIResponse<string> { IsSuccessful = true, Message = "Opps! Product could not be deleted", Errors = new string[] { "Product Not Found" } };
+                return new APIResponse<string> { IsSuccessful = true, Message = "Product deleted successfully" };
             }
 
-            return new ApiResponse<string> { IsSuccessful = false, Message = "Oops!! Product does not exist" };
+            return new APIResponse<string> { IsSuccessful = false, Message = "Oops!! Product does not exist" };
         }
 
         public PagedResponse<ProductResponseDto> GetAllProducts(SearchParameter searchQuery)

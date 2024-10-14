@@ -1,13 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using IfinionBackendAssessment.Entity.Entities;
 
-namespace IfinionBackendAssessment.Entity.Entities
+namespace IfinionBackendAssessment.Service.DataTransferObjects.Responses
 {
-    public class Order:BaseEntity
+    public class CheckoutResponse
     {
+        public int Id { get; set; }
         public int CustomerId { get; set; }
         public decimal TotalPrice { get; set; }
         public bool IsPaid { get; set; }
@@ -16,10 +13,9 @@ namespace IfinionBackendAssessment.Entity.Entities
         public string? Town { get; set; }
         public string? Street { get; set; }
         public string OrderStatus { get; set; }
-        public DateTime? DateCancelled { get; set; }
-        public DateTime? DateShipped { get; set; }
-        public DateTime? DateDelivered { get; set; }
+        public DateTime? DateCreated { get; set; }
+        public string AuthorizationUrl { get; set; }
+        public string Reference { get; set; }
         public List<OrderItem> OrderItems { get; set; } = [];
-
     }
 }

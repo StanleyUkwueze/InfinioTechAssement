@@ -13,7 +13,7 @@ namespace IfinionBackendAssessment.Entity.Entities
         public string TrxRef { get; set; }
         public string Email { get; set; }
         public bool IsDeleted { get; set; } = false;
-        public string? OrderTrackingId { get; set; }
+        public int OrderId { get; set; }
         public bool Status { get; set; }
     }
 }

@@ -6,8 +6,8 @@ namespace IfinionBackendAssessment.Service.UserService
 {
     public interface IUserService
     {
-        Task<ApiResponse<UserResponse>> GetUserByEmail(string email);
-        Task<ApiResponse<UserResponse>> Login(LoginRequest request);
-        Task<ApiResponse<CreatedUserResponse>> CreateUser(CreateUserRequest createUserRequest);
+        Task<APIResponse<UserResponse>> GetUserByEmail(string email);
+        Task<APIResponse<UserResponse>> Login(LoginRequest request);
+        Task<APIResponse<CreatedUserResponse>> CreateUser(CreateUserRequest createUserRequest);
     }
 }

@@ -12,14 +12,14 @@ namespace IfinionBackendAssessment.Service.UserService
 {
     public class UserService(IUserRepository userRepository,IEMailService eMailService, IJWTService jWTService, IMapper mapper) : IUserService
     {
-        public async Task<ApiResponse<CreatedUserResponse>> CreateUser(CreateUserRequest createUserRequest)
+        public async Task<APIResponse<CreatedUserResponse>> CreateUser(CreateUserRequest createUserRequest)
         {
             var isValid = UserDataValidation(createUserRequest);
             if(!isValid.IsSuccessful) return isValid;
 
             var existingUser = await userRepository.GetUserByEmailOrUserName(createUserRequest.Email.Trim());
             if(existingUser is not  null)  
-                return new ApiResponse<CreatedUserResponse>
+                return new APIResponse<CreatedUserResponse>
                 { 
                     IsSuccessful = false,
                     Message = "User email already exist",
@@ -34,7 +34,7 @@ namespace IfinionBackendAssessment.Service.UserService
             };
 
           var userCreated =  await userRepository.AddAsync(user);
-            if (!userCreated) return new ApiResponse<CreatedUserResponse>
+            if (!userCreated) return new APIResponse<CreatedUserResponse>
             {
                 IsSuccessful = false,
                 Message = "User creation failed",
@@ -44,7 +44,7 @@ namespace IfinionBackendAssessment.Service.UserService
             //    $"Hi {createUserRequest.UserName}, \nThank you for your successful registration on our platform.\nWe're here to serve you better.\nRegards");
 
             var createdUserResponse = mapper.Map<CreatedUserResponse>(user);
-            return new ApiResponse<CreatedUserResponse>
+            return new APIResponse<CreatedUserResponse>
             {
                 IsSuccessful = true,
                 Message = "User created successfully",
@@ -52,31 +52,31 @@ namespace IfinionBackendAssessment.Service.UserService
             };
         }
 
-        public async Task<ApiResponse<UserResponse>> GetUserByEmail(string email)
+        public async Task<APIResponse<UserResponse>> GetUserByEmail(string email)
         {
-          if(string.IsNullOrEmpty(email)) return new ApiResponse<UserResponse> { IsSuccessful = false, Message = "Email cannot be empty"};
+          if(string.IsNullOrEmpty(email)) return new APIResponse<UserResponse> { IsSuccessful = false, Message = "Email cannot be empty"};
 
           var user = await userRepository.GetUserByEmailOrUserName(email);
-            if (user is null) return new ApiResponse<UserResponse> { IsSuccessful = false, Message = "No user found with the provided email" };
+            if (user is null) return new APIResponse<UserResponse> { IsSuccessful = false, Message = "No user found with the provided email" };
             var userResponse = mapper.Map<UserResponse>(user);
-            return new ApiResponse<UserResponse> { IsSuccessful = true, Data = userResponse, Message = "User fetched"};
+            return new APIResponse<UserResponse> { IsSuccessful = true, Data = userResponse, Message = "User fetched"};
         }
 
-        public async Task<ApiResponse<UserResponse>> Login(LoginRequest request)
+        public async Task<APIResponse<UserResponse>> Login(LoginRequest request)
         {
             if (string.IsNullOrEmpty(request.Email))
-                return new ApiResponse<UserResponse> { IsSuccessful = false, Message = "Kindly provide a valid email" };
+                return new APIResponse<UserResponse> { IsSuccessful = false, Message = "Kindly provide a valid email" };
             if (string.IsNullOrEmpty(request.Password))
-                return new ApiResponse<UserResponse> { IsSuccessful = false, Message = "Kindly provide a valid password" };
+                return new APIResponse<UserResponse> { IsSuccessful = false, Message = "Kindly provide a valid password" };
             var user = await userRepository.GetUserByEmailOrUserName(request.Email);
             if (user is null)
-                return new ApiResponse<UserResponse> { IsSuccessful = false, Message = "No user found with the provided details" };
+                return new APIResponse<UserResponse> { IsSuccessful = false, Message = "No user found with the provided details" };
             if (!BCrypt.Net.BCrypt.Verify(request.Password, user.PaswordHash))
-                return new ApiResponse<UserResponse> { IsSuccessful = false, Message = "Invalid credentials" };
+                return new APIResponse<UserResponse> { IsSuccessful = false, Message = "Invalid credentials" };
             var token = await jWTService.GenerateJwtToken(user);
 
             if (string.IsNullOrEmpty(token))
-                return new ApiResponse<UserResponse> { IsSuccessful = false, Message = "Failed to generate login token" };
+                return new APIResponse<UserResponse> { IsSuccessful = false, Message = "Failed to generate login token" };
             var userResponse = new UserResponse
             {
                 UserName = user.UserName,
@@ -84,7 +84,7 @@ namespace IfinionBackendAssessment.Service.UserService
                 Role = user.Role,
                 Token = token
             };
-            return new ApiResponse<UserResponse> { Message = "Successfully logged in", IsSuccessful = true, Data = userResponse };
+            return new APIResponse<UserResponse> { Message = "Successfully logged in", IsSuccessful = true, Data = userResponse };
             
         }
 
@@ -100,28 +100,28 @@ namespace IfinionBackendAssessment.Service.UserService
             await eMailService.SendEmailAsync(emailMessage);
             return true;
         }
-        private static ApiResponse<CreatedUserResponse> UserDataValidation(CreateUserRequest createUserRequest)
+        private static APIResponse<CreatedUserResponse> UserDataValidation(CreateUserRequest createUserRequest)
         {
             if (string.IsNullOrEmpty(createUserRequest.Email))
-                return new ApiResponse<CreatedUserResponse>
+                return new APIResponse<CreatedUserResponse>
                 {
                     IsSuccessful = false,
                     Message = "Kindly provide a valid email"
                 };
             if (string.IsNullOrEmpty(createUserRequest.UserName))
-                return new ApiResponse<CreatedUserResponse>
+                return new APIResponse<CreatedUserResponse>
                 {
                     IsSuccessful = false,
                     Message = "Kindly provide a valid user name"
                 };
 
             if (string.IsNullOrEmpty(createUserRequest.Password))
-                return new ApiResponse<CreatedUserResponse>
+                return new APIResponse<CreatedUserResponse>
                 {
                     IsSuccessful = false,
                     Message = "Kindly provide a valid Password"
                 };
-            return new ApiResponse<CreatedUserResponse> { IsSuccessful = true };
+            return new APIResponse<CreatedUserResponse> { IsSuccessful = true };
         }
     }
 }

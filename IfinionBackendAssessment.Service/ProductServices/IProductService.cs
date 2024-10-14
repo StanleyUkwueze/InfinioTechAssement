@@ -7,10 +7,10 @@ namespace IfinionBackendAssessment.Service.ProductServices
 {
     public interface IProductService
     {
-        Task<ApiResponse<ProductResponseDto>> AddProduct(AddProductDto productDto, IFormFile? Image);
-        Task<ApiResponse<string>> DeleteProduct(int Id);
+        Task<APIResponse<ProductResponseDto>> AddProduct(AddProductDto productDto, IFormFile? Image);
+        Task<APIResponse<string>> DeleteProduct(int Id);
         PagedResponse<ProductResponseDto> GetAllProducts(SearchParameter searchQuery);
-        Task<ApiResponse<ProductResponseDto>> GetProductById(int Id);
-        Task<ApiResponse<ProductResponseDto>> UpdateProduct(UpdateProductDto updateProductDto, int Id, IFormFile? Image);
+        Task<APIResponse<ProductResponseDto>> GetProductById(int Id);
+        Task<APIResponse<ProductResponseDto>> UpdateProduct(UpdateProductDto updateProductDto, int Id, IFormFile? Image);
     }
 }

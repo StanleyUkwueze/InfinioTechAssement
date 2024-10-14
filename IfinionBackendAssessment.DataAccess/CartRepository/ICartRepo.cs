@@ -7,9 +7,9 @@ namespace IfinionBackendAssessment.DataAccess.CartRepository
 {
     public interface ICartRepo
     {
-        ApiResponse<int> AddToCart(int productId);
-        Task<ApiResponse<ShoppingCartResponse>> GetUserCart();
-        Task<ApiResponse<int>> RemoveFromCart(int productId);
-        Task<ApiResponse<int>> UpdateItemQuantity(int productId, bool isIncrement);
+        APIResponse<int> AddToCart(int productId);
+        Task<APIResponse<ShoppingCartResponse>> GetUserCart();
+        Task<APIResponse<int>> RemoveFromCart(int productId);
+        Task<APIResponse<int>> UpdateItemQuantity(int productId, bool isIncrement);
     }
 }

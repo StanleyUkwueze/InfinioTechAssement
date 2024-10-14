@@ -23,7 +23,7 @@ namespace IfinionBackendAssessment.API.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetUserCart()
+        public async Task<IActionResult> ViewCart()
         {
             var result = await _cartRepo.GetUserCart();
             return Ok(result);

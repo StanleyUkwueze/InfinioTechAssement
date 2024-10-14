@@ -10,15 +10,15 @@ namespace IfinionBackendAssessment.Service.CategoryServices
 {
     public class CategoryService(ICategoryRepo categoryRepo, IMapper mapper): ICategoryService
     {
-        public async Task<ApiResponse<AddCategoryResponse>> AddCategory(AddCategoryDto categoryDto)
+        public async Task<APIResponse<AddCategoryResponse>> AddCategory(AddCategoryDto categoryDto)
         {
-            ApiResponse<AddCategoryResponse> response = new ApiResponse<AddCategoryResponse>();
+            APIResponse<AddCategoryResponse> response = new APIResponse<AddCategoryResponse>();
 
             if (categoryDto == null)
-                return new ApiResponse<AddCategoryResponse> { IsSuccessful = false, Message = "Please, provide the category you want to add" };
+                return new APIResponse<AddCategoryResponse> { IsSuccessful = false, Message = "Please, provide the category you want to add" };
 
             var existingCategory = await categoryRepo.GetCategoryByName(categoryDto.Name);
-            if (existingCategory is not null) return new ApiResponse<AddCategoryResponse> { IsSuccessful = false, Message = "Category already taken" };
+            if (existingCategory is not null) return new APIResponse<AddCategoryResponse> { IsSuccessful = false, Message = "Category already taken" };
 
             var catToAdd = mapper.Map<AddCategoryDto, Category>(categoryDto);
             catToAdd.DateUpdated = DateTime.Now;
@@ -38,9 +38,9 @@ namespace IfinionBackendAssessment.Service.CategoryServices
 
         }
 
-        public async Task<ApiResponse<CategoryResponseDto>> UpdateCategory(UpdateCategoryDto updateCategoryDto, int id)
+        public async Task<APIResponse<CategoryResponseDto>> UpdateCategory(UpdateCategoryDto updateCategoryDto, int id)
         {
-            if (id <= 0) return new ApiResponse<CategoryResponseDto>
+            if (id <= 0) return new APIResponse<CategoryResponseDto>
             {
                 Message = "Kindly supply a valid category Id",
                 IsSuccessful = false
@@ -51,14 +51,14 @@ namespace IfinionBackendAssessment.Service.CategoryServices
             if (id > 0)
             {
                 var ProductToreturn = mapper.Map<CategoryResponseDto>(updatedProduct);
-                return new ApiResponse<CategoryResponseDto>
+                return new APIResponse<CategoryResponseDto>
                 {
                     Message = "Category successfully updated",
                     IsSuccessful = true,
                     Data = ProductToreturn
                 };
             }
-            return new ApiResponse<CategoryResponseDto>
+            return new APIResponse<CategoryResponseDto>
             {
                 Message = "Category update failed",
                 IsSuccessful = false,
@@ -67,20 +67,20 @@ namespace IfinionBackendAssessment.Service.CategoryServices
 
         }
 
-        public async Task<ApiResponse<string>> DeleteCategory(int Id)
+        public async Task<APIResponse<string>> DeleteCategory(int Id)
         {
-            if (Id <= 0) return new ApiResponse<string>
+            if (Id <= 0) return new APIResponse<string>
             {
                 Message = "Kindly supply a valid category Id",
                 IsSuccessful = false
             };
 
             var catToDelete = categoryRepo.GetFirstOrDefauly(x => x.Id == Id);
-            if (catToDelete is null) return new ApiResponse<string> { Message = " Category does not exist", IsSuccessful = false };
+            if (catToDelete is null) return new APIResponse<string> { Message = " Category does not exist", IsSuccessful = false };
             var isRemoved = await categoryRepo.RemoveAsync(catToDelete);
-            if (isRemoved) return new ApiResponse<string> { Message = "Category successfully deleted", IsSuccessful = true };
+            if (isRemoved) return new APIResponse<string> { Message = "Category successfully deleted", IsSuccessful = true };
 
-            return new ApiResponse<string> { Message = "Category deletion failed", IsSuccessful = false };
+            return new APIResponse<string> { Message = "Category deletion failed", IsSuccessful = false };
         }
     }
 

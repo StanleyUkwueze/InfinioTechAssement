@@ -22,6 +22,9 @@ namespace IfinionBackendAssessment.Service.Common
             CreateMap<Category, CategoryResponseDto>().ReverseMap();
             CreateMap<AddCategoryDto, Category>().ReverseMap();
             CreateMap<AddCategoryResponse, Category>().ReverseMap();
+            CreateMap<ShoppingCartResponse, ShoppingCart>().ReverseMap();
+            CreateMap<CheckoutResponse, Order>().ReverseMap();
+            CreateMap<OrderResponseDto, Order>().ReverseMap();
         }
     }
 }

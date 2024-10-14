@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace IfinionBackendAssessment.Service.DataTransferObjects.Responses
 {
-    public class PagedResponse<T> : ApiResponse<T> where T : class
+    public class PagedResponse<T> : APIResponse<T> where T : class
     {
         public PagedResponse()
         {
