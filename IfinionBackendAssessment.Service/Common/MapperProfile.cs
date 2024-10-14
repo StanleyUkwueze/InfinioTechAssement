@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static IfinionBackendAssessment.Service.MailService.EMailService;
 
 namespace IfinionBackendAssessment.Service.Common
 {
@@ -25,6 +26,9 @@ namespace IfinionBackendAssessment.Service.Common
             CreateMap<ShoppingCartResponse, ShoppingCart>().ReverseMap();
             CreateMap<CheckoutResponse, Order>().ReverseMap();
             CreateMap<OrderResponseDto, Order>().ReverseMap();
+            CreateMap<WishlistResponseDto, Wishlist>().ReverseMap();
+            CreateMap<AddWishlistDto, Wishlist>().ReverseMap();
+            CreateMap<OrderDetails, CheckoutResponse>().ReverseMap();
         }
     }
 }

@@ -5,6 +5,7 @@ using IfinionBackendAssessment.DataAccess.ProductRepository;
 using IfinionBackendAssessment.DataAccess.Repository;
 using IfinionBackendAssessment.DataAccess.UnitOfWork;
 using IfinionBackendAssessment.DataAccess.UserRepository;
+using IfinionBackendAssessment.DataAccess.WishListRepository;
 using IfinionBackendAssessment.Service.CategoryServices;
 using IfinionBackendAssessment.Service.Common;
 using IfinionBackendAssessment.Service.ImageService;
@@ -14,7 +15,7 @@ using IfinionBackendAssessment.Service.OrderServices;
 using IfinionBackendAssessment.Service.ProductServices;
 using IfinionBackendAssessment.Service.TransactionServices;
 using IfinionBackendAssessment.Service.UserService;
-using Microsoft.EntityFrameworkCore;
+using IfinionBackendAssessment.Service.WishListServices;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace IfinionBackendAssessment.Service.ServiceExtensions
@@ -37,6 +38,8 @@ namespace IfinionBackendAssessment.Service.ServiceExtensions
             Services.AddScoped<HelperMethods>();
             Services.AddScoped<ICategoryService, CategoryService>();
             Services.AddScoped<IOrderService, OrderService>();
+            Services.AddScoped<IWishListRepo, WishListRepo>();
+            Services.AddScoped<IWishListService, WishListService>();
             Services.AddScoped<ITransactionService, TransactionService>();
         }
     }

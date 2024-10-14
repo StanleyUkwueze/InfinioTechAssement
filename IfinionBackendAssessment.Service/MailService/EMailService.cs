@@ -1,5 +1,8 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using IfinionBackendAssessment.Entity.Entities;
+using IfinionBackendAssessment.Service.DataTransferObjects.Responses;
+using Microsoft.Extensions.Configuration;
 using MimeKit;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -37,6 +40,32 @@ namespace IfinionBackendAssessment.Service.MailService
             var result = await smtp.SendAsync(email);
             smtp.Disconnect(true);
             return result;
+        }
+
+        public async Task<string> NotifyAdminOfOrderPlacement(OrderDetails orderDetails, EmailMessage emailMessage)
+        {
+            var details = JsonConvert.SerializeObject(orderDetails);
+            emailMessage.Body =
+                              $"Hi, Admin\nKindly be informed that a customer just place an order.\nSee the order details below:\n" +
+                              $"{details}\n\n Best Regards";
+
+          var resonse = await SendEmailAsync(emailMessage);
+
+          return resonse;
+        }
+
+        public class OrderDetails
+        {
+            public int CustomerId { get; set; }
+            public decimal TotalPrice { get; set; }
+            public bool IsPaid { get; set; }
+            public string? State { get; set; }
+            public string? City { get; set; }
+            public string? Town { get; set; }
+            public string? Street { get; set; }
+            public string OrderStatus { get; set; }
+            public DateTime? DateCreated { get; set; }
+            public List<OrderItem> OrderItems { get; set; } = [];
         }
     }
 }

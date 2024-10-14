@@ -1,6 +1,5 @@
 ﻿using IfinionBackendAssessment.Service.DataTransferObjects.Requests;
 using IfinionBackendAssessment.Service.UserService;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace IfinionBackendAssessment.API.Controllers
@@ -15,7 +14,7 @@ namespace IfinionBackendAssessment.API.Controllers
         {
             var response = await userService.CreateUser(request);
 
-            return response.IsSuccessful ? Ok(response) : BadRequest(response);
+            return Ok(response);
         }
 
         [HttpPost("login")]
@@ -23,7 +22,7 @@ namespace IfinionBackendAssessment.API.Controllers
         {
             var response = await userService.Login(request);
 
-            return response.IsSuccessful ? Ok(response) : BadRequest(response);
+            return Ok(response);
         }
     }
 }

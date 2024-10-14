@@ -1,7 +1,6 @@
 ﻿using IfinionBackendAssessment.DataAccess.DataTransferObjects;
 using IfinionBackendAssessment.Service.OrderServices;
 using IfinionBackendAssessment.Service.TransactionServices;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace IfinionBackendAssessment.API.Controllers

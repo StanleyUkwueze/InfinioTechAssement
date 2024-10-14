@@ -14,42 +14,54 @@ namespace IfinionBackendAssessment.Service.UserService
     {
         public async Task<APIResponse<CreatedUserResponse>> CreateUser(CreateUserRequest createUserRequest)
         {
-            var isValid = UserDataValidation(createUserRequest);
-            if(!isValid.IsSuccessful) return isValid;
+            var response = new APIResponse<CreatedUserResponse>();
+            try
+            {
+                var isValid = UserDataValidation(createUserRequest);
+                if (!isValid.IsSuccessful) return isValid;
 
-            var existingUser = await userRepository.GetUserByEmailOrUserName(createUserRequest.Email.Trim());
-            if(existingUser is not  null)  
-                return new APIResponse<CreatedUserResponse>
-                { 
-                    IsSuccessful = false,
-                    Message = "User email already exist",
+                var existingUser = await userRepository.GetUserByEmailOrUserName(createUserRequest.Email.Trim());
+                if (existingUser is not null)
+                    return new APIResponse<CreatedUserResponse>
+                    {
+                        IsSuccessful = false,
+                        Message = "User email already exist",
+                    };
+
+                var user = new User
+                {
+                    UserName = createUserRequest.UserName.Trim(),
+                    Email = createUserRequest.Email.Trim(),
+                    PaswordHash = BCrypt.Net.BCrypt.HashPassword(createUserRequest.Password),
+                    Role = "Customer",
                 };
 
-            var user = new User
-            {
-                UserName = createUserRequest.UserName.Trim(),
-                Email = createUserRequest.Email.Trim(),
-                PaswordHash = BCrypt.Net.BCrypt.HashPassword(createUserRequest.Password),
-                Role = "Customer",
-            };
+                var userCreated = await userRepository.AddAsync(user);
+                if (!userCreated) return new APIResponse<CreatedUserResponse>
+                {
+                    IsSuccessful = false,
+                    Message = "User creation failed",
+                };
 
-          var userCreated =  await userRepository.AddAsync(user);
-            if (!userCreated) return new APIResponse<CreatedUserResponse>
-            {
-                IsSuccessful = false,
-                Message = "User creation failed",
-            };
+                var res = await SendMailAsync(createUserRequest.Email, "Welcome Message",
+                    $"Hi {createUserRequest.UserName}, \nThank you for your successful registration on our platform.\nWe're here to serve you better.\nRegards");
 
-            //var res = await SendMailAsync(createUserRequest.Email, "Welcome Message", 
-            //    $"Hi {createUserRequest.UserName}, \nThank you for your successful registration on our platform.\nWe're here to serve you better.\nRegards");
-
-            var createdUserResponse = mapper.Map<CreatedUserResponse>(user);
-            return new APIResponse<CreatedUserResponse>
+                var createdUserResponse = mapper.Map<CreatedUserResponse>(user);
+                return new APIResponse<CreatedUserResponse>
+                {
+                    IsSuccessful = true,
+                    Message = "User created successfully",
+                    Data = createdUserResponse
+                };
+            }
+            catch(Exception exc)
             {
-                IsSuccessful = true,
-                Message = "User created successfully",
-                Data = createdUserResponse
-            };
+                response.Message = $"User registration successful but an exception occured during WelCome Message: {exc.Message}"; 
+            }
+
+            response.IsSuccessful = false;
+            return response;
+
         }
 
         public async Task<APIResponse<UserResponse>> GetUserByEmail(string email)

@@ -8,14 +8,15 @@ using IfinionBackendAssessment.Entity.Enums;
 using IfinionBackendAssessment.Service.Common;
 using IfinionBackendAssessment.Service.DataTransferObjects.Requests;
 using IfinionBackendAssessment.Service.DataTransferObjects.Responses;
+using IfinionBackendAssessment.Service.MailService;
 using IfinionBackendAssessment.Service.TransactionServices;
 using Microsoft.EntityFrameworkCore;
+using static IfinionBackendAssessment.Service.MailService.EMailService;
 
 namespace IfinionBackendAssessment.Service.OrderServices
 {
-    public class OrderService(HelperMethods helperMethods, AppDbContext _context, IMapper mapper, ITransactionService transactionService) : IOrderService
+    public class OrderService(HelperMethods helperMethods, AppDbContext _context,IEMailService eMailService, IMapper mapper, ITransactionService transactionService) : IOrderService
     {
-
         public async Task<APIResponse<CheckoutResponse>> PlaceOrderAsync(PlaceOrderRequestModel PlaceOrderRequestModel)
         {
             var response = new CheckoutResponse();
@@ -90,7 +91,17 @@ namespace IfinionBackendAssessment.Service.OrderServices
                 response.AuthorizationUrl = transaction.Data.Data.AuthorizationUrl;
                 response.Reference = transaction.Data.Data.Reference;
 
+                var orderDetails = mapper.Map<OrderDetails>(response);
+
                 // notify the admin via email service
+                var emailMessage = new EmailMessage
+                {
+                    To = "stanleyjekwu16@gmail.com",
+                    Subject = "Order Placement Notification"
+                };
+
+                await eMailService.NotifyAdminOfOrderPlacement(orderDetails, emailMessage);
+                
                 return new APIResponse<CheckoutResponse> { Data = response, Message = "Order successfully placed", IsSuccessful = true };
             }
             return new APIResponse<CheckoutResponse> { Data = response, Message = "Transaction failed", IsSuccessful = false };
