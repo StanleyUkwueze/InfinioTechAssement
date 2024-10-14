@@ -1,6 +1,8 @@
 ﻿using IfinionBackendAssessment.DataAccess.DataTransferObjects;
+using IfinionBackendAssessment.Entity.Constants;
 using IfinionBackendAssessment.Service.OrderServices;
 using IfinionBackendAssessment.Service.TransactionServices;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace IfinionBackendAssessment.API.Controllers
@@ -9,6 +11,7 @@ namespace IfinionBackendAssessment.API.Controllers
     [ApiController]
     public class OrderController(IOrderService orderService, ITransactionService transactionService) : ControllerBase
     {
+        [Authorize(Roles = Roles.Customer)]
         [HttpPost("checkout")]
         public async Task<IActionResult> Checkout([FromBody] PlaceOrderRequestModel placeOrderRequestModel)
         {
@@ -16,6 +19,7 @@ namespace IfinionBackendAssessment.API.Controllers
             return Ok(result);
         }
 
+        [Authorize(Roles = $"{Roles.Customer},{Roles.Admin}")]
         [HttpGet("{orderId}")]
         public async Task<IActionResult> ViewOrder(int orderId)
         {
@@ -23,6 +27,8 @@ namespace IfinionBackendAssessment.API.Controllers
             return Ok(result);
         }
 
+
+        [Authorize(Roles = $"{Roles.Customer},{Roles.Admin}")]
         [HttpGet]
         public async Task<IActionResult> GetOrders()
         {
@@ -30,6 +36,7 @@ namespace IfinionBackendAssessment.API.Controllers
             return Ok(result);
         }
 
+        [Authorize(Roles = Roles.Admin)]
         [HttpPut("{orderId}/status")]
         public async Task<IActionResult> MarkOrderAsDelivere(int orderId, string status)
         {

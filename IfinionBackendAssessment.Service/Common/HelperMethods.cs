@@ -22,6 +22,7 @@ namespace IfinionBackendAssessment.Service.Common
             var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId is null) return (0, "");
 
+            
             var role = user.IsInRole(Roles.Admin) ? Roles.Admin : Roles.Customer;
 
             return (int.Parse(userId!), role);

@@ -1,11 +1,6 @@
 ﻿using IfinionBackendAssessment.DataAccess.Repository;
 using IfinionBackendAssessment.Entity.Entities;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace IfinionBackendAssessment.DataAccess.UserRepository
 {
@@ -20,6 +15,11 @@ namespace IfinionBackendAssessment.DataAccess.UserRepository
         {
             var user = await _context.Users.FirstOrDefaultAsync(x => x.Email == emailOrUserName || x.UserName == emailOrUserName);
             return user!;
+        }
+
+        public async Task<User> GetUserById(int Id)
+        {
+            return  await _context.Users.FindAsync(Id);
         }
     }
 }

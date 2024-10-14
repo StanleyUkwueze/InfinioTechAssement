@@ -1,5 +1,7 @@
-﻿using IfinionBackendAssessment.Service.DataTransferObjects.Requests;
+﻿using IfinionBackendAssessment.Entity.Constants;
+using IfinionBackendAssessment.Service.DataTransferObjects.Requests;
 using IfinionBackendAssessment.Service.WishListServices;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -9,7 +11,7 @@ namespace IfinionBackendAssessment.API.Controllers
     [ApiController]
     public class WishlistController(IWishListService wishListService) : ControllerBase
     {
-
+        [Authorize(Roles = Roles.Customer)]
         [HttpPost]
         public async Task<IActionResult> AddItemToWishList([FromForm] AddWishlistDto addWishlistDto)
         {
@@ -17,6 +19,7 @@ namespace IfinionBackendAssessment.API.Controllers
             return Ok(response);
         }
 
+        [Authorize(Roles = Roles.Customer)]
         [HttpGet]
         public async Task<IActionResult> ViewWishListItems()
         {
@@ -24,6 +27,7 @@ namespace IfinionBackendAssessment.API.Controllers
             return Ok(response);
         }
 
+        [Authorize(Roles = Roles.Customer)]
         [HttpDelete("{itemId}")]
         public async Task<IActionResult> RemoveItemFromWishList(int itemId)
         {

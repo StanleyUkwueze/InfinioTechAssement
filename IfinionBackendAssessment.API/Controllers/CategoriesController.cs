@@ -1,6 +1,8 @@
 ﻿using IfinionBackendAssessment.DataAccess.DataTransferObjects;
+using IfinionBackendAssessment.Entity.Constants;
 using IfinionBackendAssessment.Service.CategoryServices;
 using IfinionBackendAssessment.Service.DataTransferObjects.Requests;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,7 +12,7 @@ namespace IfinionBackendAssessment.API.Controllers
     [ApiController]
     public class CategoriesController(ICategoryService _categoryService) : ControllerBase
     {
-        //[Authorize]
+        [Authorize(Roles = Roles.Admin)]
         [HttpPost]
         public async Task<IActionResult> AddCategory([FromForm] AddCategoryDto categoryDto)
         {
@@ -18,6 +20,7 @@ namespace IfinionBackendAssessment.API.Controllers
             return Ok(result);
         }
 
+        [Authorize(Roles = Roles.Admin)]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteCategory([FromRoute] int id)
         {
@@ -25,7 +28,7 @@ namespace IfinionBackendAssessment.API.Controllers
             return Ok(result);
         }
 
-        //[Authorize]
+        [Authorize(Roles = Roles.Admin)]
         [HttpPut("{id}")]
         public async Task<IActionResult> EditCategory([FromForm] UpdateCategoryDto categoryDto, int id)
         {

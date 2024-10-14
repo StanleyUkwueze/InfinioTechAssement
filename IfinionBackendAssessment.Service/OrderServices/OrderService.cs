@@ -2,6 +2,7 @@
 using IfinionBackendAssessment.DataAccess;
 using IfinionBackendAssessment.DataAccess.Common;
 using IfinionBackendAssessment.DataAccess.DataTransferObjects;
+using IfinionBackendAssessment.DataAccess.UserRepository;
 using IfinionBackendAssessment.Entity.Constants;
 using IfinionBackendAssessment.Entity.Entities;
 using IfinionBackendAssessment.Entity.Enums;
@@ -11,12 +12,14 @@ using IfinionBackendAssessment.Service.DataTransferObjects.Responses;
 using IfinionBackendAssessment.Service.MailService;
 using IfinionBackendAssessment.Service.TransactionServices;
 using Microsoft.EntityFrameworkCore;
+using System;
 using static IfinionBackendAssessment.Service.MailService.EMailService;
 
 namespace IfinionBackendAssessment.Service.OrderServices
 {
-    public class OrderService(HelperMethods helperMethods, AppDbContext _context,IEMailService eMailService, IMapper mapper, ITransactionService transactionService) : IOrderService
+    public class OrderService(HelperMethods helperMethods, AppDbContext _context, IUserRepository userRepository, IEMailService eMailService, IMapper mapper, ITransactionService transactionService) : IOrderService
     {
+        private Random random = new();
         public async Task<APIResponse<CheckoutResponse>> PlaceOrderAsync(PlaceOrderRequestModel PlaceOrderRequestModel)
         {
             var response = new CheckoutResponse();
@@ -30,6 +33,7 @@ namespace IfinionBackendAssessment.Service.OrderServices
                 CustomerId = userId.Item1,
                 TotalPrice = shoppingCart.TotalPrice,
                 OrderStatus = OrderStatus.Processing.ToString(),
+                TrackingId = GenerateTrackingId(),
                 State = PlaceOrderRequestModel.State,
                 City = PlaceOrderRequestModel.City,
                 Town = PlaceOrderRequestModel.Town,
@@ -96,8 +100,8 @@ namespace IfinionBackendAssessment.Service.OrderServices
                 // notify the admin via email service
                 var emailMessage = new EmailMessage
                 {
-                    To = "stanleyjekwu16@gmail.com",
-                    Subject = "Order Placement Notification"
+                    To = Emails.AdminEmail,
+                    Subject = EmailSubjects.OrderPlcacementNotifcation
                 };
 
                 await eMailService.NotifyAdminOfOrderPlacement(orderDetails, emailMessage);
@@ -112,11 +116,23 @@ namespace IfinionBackendAssessment.Service.OrderServices
         public async Task<Order> GetUserOrderAsync(int orderId)
         {
             var userId = helperMethods.GetUserId();
-            var order = await _context.Orders.Include(x => x.OrderItems)
-                         .FirstOrDefaultAsync(x =>
-                         x.Id == orderId
-                         && x.CustomerId == userId.Item1
-                         );
+            var order = new Order();
+
+            if (userId.Item2 == Roles.Admin)
+            {
+                order = await _context.Orders.Include(x => x.OrderItems)
+                      .FirstOrDefaultAsync(x =>
+                      x.Id == orderId && x.OrderStatus != OrderStatus.Delivered.ToString());
+            }
+            else
+            {
+                order = await _context.Orders.Include(x => x.OrderItems)
+                    .FirstOrDefaultAsync(x =>
+                    x.Id == orderId
+                    && x.CustomerId == userId.Item1 && x.OrderStatus != OrderStatus.Delivered.ToString()
+                    );
+            }
+       
             return order!;
         }
 
@@ -197,11 +213,34 @@ namespace IfinionBackendAssessment.Service.OrderServices
 
                 if(status.ToLower() == OrderStatus.Delivered.ToString().ToLower())
                 {
+                  var customer = await userRepository.GetUserById(order.CustomerId);
+
+                    if(customer is not null)
+                    {
+                        var emailMessage = new EmailMessage
+                        {
+                            Subject = EmailSubjects.OrderDeliveryNotification,
+                            To = customer.Email
+                       };
+                    await eMailService.NotifyCustomerOfOrderStatus(emailMessage, status, order.TrackingId);
+                    }
+               
                     order.DateDelivered = DateTime.Now;
                 }
                 if (status.ToLower() == OrderStatus.Shipped.ToString().ToLower())
                 {
-                    order.DateShipped = DateTime.Now;
+                    var customer = await userRepository.GetUserById(order.CustomerId);
+
+                    if (customer is not null)
+                    {
+                        var emailMessage = new EmailMessage
+                        {
+                            Subject = EmailSubjects.OrderShipmentNotification,
+                            To = customer.Email
+                        };
+                    await eMailService.NotifyCustomerOfOrderStatus(emailMessage, status, order.TrackingId);
+                }
+                   order.DateShipped = DateTime.Now;
                 }
                 order.OrderStatus = status;
                 
@@ -213,6 +252,19 @@ namespace IfinionBackendAssessment.Service.OrderServices
                     return new APIResponse<string> { IsSuccessful = true, Message = "Order status Successfully updated" };
                 }
                 return new APIResponse<string> { IsSuccessful = false, Message = "Order status update failed" };
+        }
+
+        private string GenerateTrackingId()
+        {
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            char[] trackingId = new char[15];
+
+            for (int i = 0; i < trackingId.Length; i++)
+            {
+                trackingId[i] = chars[random.Next(chars.Length)];
+            }
+
+            return new string(trackingId);
         }
     }
 }

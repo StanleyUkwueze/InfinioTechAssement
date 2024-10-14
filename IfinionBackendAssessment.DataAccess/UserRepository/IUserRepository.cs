@@ -11,6 +11,7 @@ namespace IfinionBackendAssessment.DataAccess.UserRepository
     public interface IUserRepository: IGenericRepository<User>
     {
         Task<User> GetUserByEmailOrUserName(string email);
+        Task<User> GetUserById(int Id);
 
     }
 }

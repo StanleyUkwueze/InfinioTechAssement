@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace IfinionBackendAssessment.DataAccess.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20241013225115_InitialMigration")]
+    [Migration("20241014153230_InitialMigration")]
     partial class InitialMigration
     {
         /// <inheritdoc />
@@ -140,6 +140,10 @@ namespace IfinionBackendAssessment.DataAccess.Migrations
                     b.Property<string>("Town")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("TrackingId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.HasKey("Id");
 
                     b.ToTable("Orders");
@@ -228,33 +232,6 @@ namespace IfinionBackendAssessment.DataAccess.Migrations
                     b.HasIndex("CategoryId");
 
                     b.ToTable("Products");
-                });
-
-            modelBuilder.Entity("IfinionBackendAssessment.Entity.Entities.Role", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("DateCreated")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("DateUpdated")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Roles");
                 });
 
             modelBuilder.Entity("IfinionBackendAssessment.Entity.Entities.ShoppingCart", b =>

@@ -1,13 +1,7 @@
 ﻿using IfinionBackendAssessment.Entity.Entities;
-using IfinionBackendAssessment.Service.DataTransferObjects.Responses;
 using Microsoft.Extensions.Configuration;
 using MimeKit;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace IfinionBackendAssessment.Service.MailService
 {
@@ -52,6 +46,14 @@ namespace IfinionBackendAssessment.Service.MailService
           var resonse = await SendEmailAsync(emailMessage);
 
           return resonse;
+        }
+
+        public async Task<string> NotifyCustomerOfOrderStatus(EmailMessage emailMessage, string status, string trackingId )
+        {
+            emailMessage.Body = $"Dear Customer,\nKindly be informed that order {trackingId} has been {status} successfully.\n\nThanks for trusting us";
+
+            var resonse = await SendEmailAsync(emailMessage);
+            return resonse;
         }
 
         public class OrderDetails

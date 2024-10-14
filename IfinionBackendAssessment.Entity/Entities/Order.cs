@@ -15,6 +15,7 @@ namespace IfinionBackendAssessment.Entity.Entities
         public string? City { get; set; }
         public string? Town { get; set; }
         public string? Street { get; set; }
+        public string TrackingId { get; set; }
         public string OrderStatus { get; set; }
         public DateTime? DateCancelled { get; set; }
         public DateTime? DateShipped { get; set; }

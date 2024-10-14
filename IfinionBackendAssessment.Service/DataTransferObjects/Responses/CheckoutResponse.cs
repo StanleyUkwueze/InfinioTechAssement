@@ -7,6 +7,7 @@ namespace IfinionBackendAssessment.Service.DataTransferObjects.Responses
         public int Id { get; set; }
         public int CustomerId { get; set; }
         public decimal TotalPrice { get; set; }
+        public string TrackingId { get; set; }
         public bool IsPaid { get; set; }
         public string? State { get; set; }
         public string? City { get; set; }
