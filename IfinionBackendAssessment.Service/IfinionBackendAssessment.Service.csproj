@@ -9,6 +9,7 @@
   <ItemGroup>
 	<PackageReference Include="CloudinaryDotNet" Version="1.17.0" />
     <PackageReference Include="AutoMapper" Version="13.0.1" />
+    <PackageReference Include="InMemoryCache" Version="0.1.1" />
 	<PackageReference Include="Paystack.Net" Version="1.1.1" />
     <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
 	<PackageReference Include="Mailjet.Api" Version="3.0.0" />

@@ -5,6 +5,8 @@ using IfinionBackendAssessment.DataAccess.ProductRepository;
 using IfinionBackendAssessment.DataAccess.Repository;
 using IfinionBackendAssessment.DataAccess.UserRepository;
 using IfinionBackendAssessment.DataAccess.WishListRepository;
+using IfinionBackendAssessment.Service.CacheService;
+using IfinionBackendAssessment.Service.CacheServices;
 using IfinionBackendAssessment.Service.CategoryServices;
 using IfinionBackendAssessment.Service.Common;
 using IfinionBackendAssessment.Service.ImageService;
@@ -24,6 +26,7 @@ namespace IfinionBackendAssessment.Service.ServiceExtensions
         public static void AddApplicationServices(this IServiceCollection Services)
         {
             Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+            Services.AddScoped<ICacheService, CacheServices.CacheService>();
             Services.AddScoped<IUserRepository, UserRepository>();
             Services.AddScoped<IUserService, UserService.UserService>();
             Services.AddScoped<IEMailService, EMailService>();
@@ -39,6 +42,7 @@ namespace IfinionBackendAssessment.Service.ServiceExtensions
             Services.AddScoped<IWishListRepo, WishListRepo>();
             Services.AddScoped<IWishListService, WishListService>();
             Services.AddScoped<ITransactionService, TransactionService>();
+            Services.AddMemoryCache();
         }
     }
 }

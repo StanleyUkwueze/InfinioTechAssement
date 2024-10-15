@@ -36,6 +36,7 @@ builder.Services.AddAuthentication(x =>
         ValidateIssuerSigningKey = true
     };
 });
+
 builder.Services.AddAuthorization();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

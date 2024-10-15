@@ -5,10 +5,12 @@ using IfinionBackendAssessment.DataAccess.Common;
 using IfinionBackendAssessment.DataAccess.DataTransferObjects;
 using IfinionBackendAssessment.DataAccess.ProductRepository;
 using IfinionBackendAssessment.Entity.Entities;
+using IfinionBackendAssessment.Service.CacheService;
 using IfinionBackendAssessment.Service.Common;
 using IfinionBackendAssessment.Service.DataTransferObjects.Responses;
 using IfinionBackendAssessment.Service.ImageService;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 
 namespace IfinionBackendAssessment.Service.ProductServices
 {
@@ -17,12 +19,22 @@ namespace IfinionBackendAssessment.Service.ProductServices
         private readonly IphotoService _iphotoService;
         private readonly IProductRepo _productRepo;
         private readonly ICategoryRepo _categoryRepo;
+        private readonly IConfiguration _configuration;
+        private readonly ICacheService _cacheService;
         private readonly IMapper _mapper;
-        public ProductService(IphotoService iphotoService, IProductRepo productRepo, ICategoryRepo categoryRepo, IMapper mapper)
+        public ProductService(
+            IphotoService iphotoService,
+            ICacheService cacheService,
+            IConfiguration configuration,
+            IProductRepo productRepo,
+            ICategoryRepo categoryRepo,
+            IMapper mapper)
         {
             _iphotoService = iphotoService;
             _productRepo = productRepo;
             _categoryRepo = categoryRepo;
+            _configuration = configuration;
+            _cacheService = cacheService;
             _mapper = mapper;
         }
         public async Task<APIResponse<ProductResponseDto>> AddProduct(AddProductDto productDto, IFormFile? Image)
@@ -107,10 +119,27 @@ namespace IfinionBackendAssessment.Service.ProductServices
 
         public async Task<APIResponse<ProductResponseDto>> GetProductById(int Id)
         {
+            var CacheKey = $"{_configuration.GetSection("CacheSettings:CacheKey").Value!}_{Id}";
+            var ProductToReturn = new ProductResponseDto();
+           var productFromCache = _cacheService.GetProductFromCacheAsyc(Id);
+            if(productFromCache != null && productFromCache.Count > 0)
+            {
+                ProductToReturn = _mapper.Map<ProductResponseDto>(productFromCache[0]);
+                return new APIResponse<ProductResponseDto>
+                {
+                    Message = "Product Successfully fetched",
+                    Data = ProductToReturn,
+                    IsSuccessful = true
+                };
+            }
             var Product = await _productRepo.GetById(Id);
-            if (Product == null) return new APIResponse<ProductResponseDto> { Message = "No product found", IsSuccessful = false, Errors = new string[] { "Product Not Found" } };
+            if (Product == null) return new APIResponse<ProductResponseDto> 
+            { Message = "No product found", IsSuccessful = false,
+                Errors = new string[] { "Product Not Found" } };
 
-            var ProductToReturn = _mapper.Map<ProductResponseDto>(Product);
+            _cacheService.SaveToCache(new List<Product> { Product }, CacheKey);
+
+             ProductToReturn = _mapper.Map<ProductResponseDto>(Product);
 
             return new APIResponse<ProductResponseDto>
             {
@@ -134,11 +163,42 @@ namespace IfinionBackendAssessment.Service.ProductServices
 
         public PagedResponse<ProductResponseDto> GetAllProducts(SearchParameter searchQuery)
         {
-            if (searchQuery.MaxPrice < 0 || searchQuery.MinPrice < 0) return new PagedResponse<ProductResponseDto> { IsSuccessful = false, Message = "Product price cannot be a negative value" };
             var productsToReturn = new PagedResponse<ProductResponseDto>();
+            var CacheKey = $"{_configuration.GetSection("CacheSettings:CacheKey").Value!}";
+ 
+            var productsFromCache = _cacheService.GetProductsFromCacheAsyc();
+            if (productsFromCache != null && productsFromCache.Count > 0)
+            {
+                foreach (var prod in productsFromCache)
+                {
+                    var product = _mapper.Map<ProductResponseDto>(prod);
 
-            var Products = _productRepo.GetProductsWithSearch(searchQuery.Query, searchQuery.MinPrice, searchQuery.MaxPrice).Paginate(searchQuery.PageNumber, searchQuery.PageSize);
-            if (Products is null || Products.Result.Count < 1) return new PagedResponse<ProductResponseDto> { Message = "No product found", Errors = new string[] { "Product Not Found" } };
+                    productsToReturn.Result.Add(product);
+                }
+                productsToReturn.IsSuccessful = true;
+                productsToReturn.Message = "Successfully fetched all products";
+                productsToReturn.TotalRecords = productsFromCache.Count;
+                productsToReturn.PageSize = searchQuery.PageSize;
+                productsToReturn.CurrentPage = searchQuery.PageNumber;
+                return productsToReturn;
+            }
+
+            if (searchQuery.MaxPrice < 0 || searchQuery.MinPrice < 0)
+                return new PagedResponse<ProductResponseDto>
+                { 
+                    IsSuccessful = false,
+                    Message = "Product price cannot be a negative value"
+                };
+
+            var Products = _productRepo.GetProductsWithSearch(searchQuery.Query, searchQuery.MinPrice, searchQuery.MaxPrice)
+                .Paginate(searchQuery.PageNumber, searchQuery.PageSize);
+
+            if (Products is null || Products.Result.Count < 1) 
+                return new PagedResponse<ProductResponseDto> 
+                { 
+                    Message = "No product found", 
+                    Errors = new string[] { "Product Not Found" }
+                };
 
             foreach (var prod in Products.Result)
             {
@@ -146,6 +206,8 @@ namespace IfinionBackendAssessment.Service.ProductServices
 
                 productsToReturn.Result.Add(product);
             }
+
+            _cacheService.SaveToCache(Products.Result.ToList(), CacheKey);
 
             productsToReturn.IsSuccessful = true;
             productsToReturn.Message = "Successfully fetched all products";

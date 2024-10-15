@@ -1,15 +1,9 @@
 ﻿using IfinionBackendAssessment.Entity.Entities;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
-using System;
-using System.Collections.Generic;
-using System.Data;
 using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
 using System.Security.Claims;
 using System.Text;
-using System.Threading.Tasks;
-using static Org.BouncyCastle.Math.EC.ECCurve;
 
 namespace IfinionBackendAssessment.Service.JWT
 {
