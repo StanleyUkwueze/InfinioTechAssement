@@ -9,7 +9,7 @@ namespace IfinionBackendAssessment.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class OrderController(IOrderService orderService, ITransactionService transactionService) : ControllerBase
+    public class OrdersController(IOrderService orderService, ITransactionService transactionService) : ControllerBase
     {
         [Authorize(Roles = Roles.Customer)]
         [HttpPost("checkout")]

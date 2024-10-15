@@ -7,11 +7,11 @@ using Newtonsoft.Json;
 
 namespace IfinionBackendAssessment.Service.CacheServices
 {
-    public class CacheService(IConfiguration configuration, IMemoryCache cache, ILogger<CacheService> logger) : ICacheService
+    public class CacheService<T>(IConfiguration configuration, IMemoryCache cache, ILogger<CacheService<T>> logger) : ICacheService<T> where T : class
     {
         private static string CacheKey = string.Empty;
 
-        public void SaveToCache(List<Product> data, string key)
+        public void SaveToCache(List<T> data, string key)
         {
             var expirationTime = int.Parse(configuration.GetSection("CacheSettings:ExpirationTime").Value!);
 
@@ -24,27 +24,12 @@ namespace IfinionBackendAssessment.Service.CacheServices
 
             cache.Set(key, data, cacheEntryOptions);
         }
-        public List<Product> GetProductFromCacheAsyc(int itemId)
+
+        public List<T> GetDataFromCacheAsyc(string CacheKey)
         {
-            CacheKey = $"{configuration.GetSection("CacheSettings:CacheKey").Value!}_{itemId}";
-            logger.LogInformation($"About to fetch products for cache with key: {CacheKey}");
-
-            if (!cache.TryGetValue(CacheKey, out List<Product>? data))
+            if (!cache.TryGetValue(CacheKey, out List<T>? data))
             {
-                logger.LogInformation($"No product found in the Cache");
-                return data!;
-            }
-            return data!;
-        }
-
-        public List<Product> GetProductsFromCacheAsyc()
-        {
-            CacheKey = $"{configuration.GetSection("CacheSettings:CacheKey").Value!}";
-            logger.LogInformation($"About to fetch products for cache with key: {CacheKey}");
-
-            if (!cache.TryGetValue(CacheKey, out List<Product>? data))
-            {
-                logger.LogInformation($"No product found in the Cache");
+                logger.LogInformation($"No item found in the Cache");
                 return data!;
             }
             return data!.ToList();

@@ -20,11 +20,11 @@ namespace IfinionBackendAssessment.Service.ProductServices
         private readonly IProductRepo _productRepo;
         private readonly ICategoryRepo _categoryRepo;
         private readonly IConfiguration _configuration;
-        private readonly ICacheService _cacheService;
+        private readonly ICacheService<Product> _cacheService;
         private readonly IMapper _mapper;
         public ProductService(
             IphotoService iphotoService,
-            ICacheService cacheService,
+            ICacheService<Product> cacheService,
             IConfiguration configuration,
             IProductRepo productRepo,
             ICategoryRepo categoryRepo,
@@ -121,7 +121,7 @@ namespace IfinionBackendAssessment.Service.ProductServices
         {
             var CacheKey = $"{_configuration.GetSection("CacheSettings:CacheKey").Value!}_{Id}";
             var ProductToReturn = new ProductResponseDto();
-           var productFromCache = _cacheService.GetProductFromCacheAsyc(Id);
+           var productFromCache = _cacheService.GetDataFromCacheAsyc(CacheKey);
             if(productFromCache != null && productFromCache.Count > 0)
             {
                 ProductToReturn = _mapper.Map<ProductResponseDto>(productFromCache[0]);
@@ -166,7 +166,7 @@ namespace IfinionBackendAssessment.Service.ProductServices
             var productsToReturn = new PagedResponse<ProductResponseDto>();
             var CacheKey = $"{_configuration.GetSection("CacheSettings:CacheKey").Value!}";
  
-            var productsFromCache = _cacheService.GetProductsFromCacheAsyc();
+            var productsFromCache = _cacheService.GetDataFromCacheAsyc(CacheKey);
             if (productsFromCache != null && productsFromCache.Count > 0)
             {
                 foreach (var prod in productsFromCache)

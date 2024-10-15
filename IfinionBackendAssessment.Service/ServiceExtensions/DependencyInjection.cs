@@ -26,7 +26,7 @@ namespace IfinionBackendAssessment.Service.ServiceExtensions
         public static void AddApplicationServices(this IServiceCollection Services)
         {
             Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
-            Services.AddScoped<ICacheService, CacheServices.CacheService>();
+            Services.AddScoped(typeof(ICacheService<>), typeof(CacheService<>));
             Services.AddScoped<IUserRepository, UserRepository>();
             Services.AddScoped<IUserService, UserService.UserService>();
             Services.AddScoped<IEMailService, EMailService>();

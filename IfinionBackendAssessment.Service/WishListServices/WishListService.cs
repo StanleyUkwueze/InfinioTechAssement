@@ -1,20 +1,29 @@
 ﻿using AutoMapper;
-using Azure;
 using IfinionBackendAssessment.DataAccess.Common;
 using IfinionBackendAssessment.DataAccess.ProductRepository;
 using IfinionBackendAssessment.DataAccess.WishListRepository;
 using IfinionBackendAssessment.Entity.Constants;
 using IfinionBackendAssessment.Entity.Entities;
+using IfinionBackendAssessment.Service.CacheService;
 using IfinionBackendAssessment.Service.Common;
 using IfinionBackendAssessment.Service.DataTransferObjects.Requests;
 using IfinionBackendAssessment.Service.DataTransferObjects.Responses;
-using Mailjet.Client.Resources;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
 namespace IfinionBackendAssessment.Service.WishListServices
 {
-    public class WishListService(IWishListRepo wishListRepo, IProductRepo productRepo, HelperMethods helperMethods, IMapper mapper) : IWishListService
+    public class WishListService
+        (
+        IWishListRepo wishListRepo,
+        ICacheService<Wishlist> cacheService,
+        IProductRepo productRepo,
+        IConfiguration configuration,
+        HelperMethods helperMethods,
+        IMapper mapper
+        ) : IWishListService
     {
+        string CacheKey = $"{configuration.GetSection("CacheSettings:CacheKey").Value!}_WishLists";
         public async Task<APIResponse<WishlistResponseDto>> AddWishListItem(AddWishlistDto addWishlistDto)
         {
             var response = new WishlistResponseDto();
@@ -91,6 +100,7 @@ namespace IfinionBackendAssessment.Service.WishListServices
 
         public async Task<APIResponse<List<WishlistResponseDto>>> GetAllWishlistItems()
         {
+            var wishlistItems = new List<Wishlist>();
             var response = new List<WishlistResponseDto>();
 
             var user = helperMethods.GetUserId();
@@ -109,7 +119,18 @@ namespace IfinionBackendAssessment.Service.WishListServices
                     Message = "UnAuthorized: Admin User"
                 };
 
-            var wishlistItems = await wishListRepo.GetAll().Where(x => x.CustomerId == user.Item1).ToListAsync();
+            wishlistItems = cacheService.GetDataFromCacheAsyc(CacheKey);
+            if(wishlistItems is not null && wishlistItems.Count > 0)
+            {
+                response = mapper.Map<List<WishlistResponseDto>>(wishlistItems);
+                return new APIResponse<List<WishlistResponseDto>>
+                {
+                    IsSuccessful = true,
+                    Message = "Successfully fetched wishlist items",
+                    Data = response
+                };
+            }
+             wishlistItems = await wishListRepo.GetAll().Where(x => x.CustomerId == user.Item1).ToListAsync();
 
             if(wishlistItems is null || wishlistItems.Count <= 0)
                 return new APIResponse<List<WishlistResponseDto>>
@@ -118,6 +139,8 @@ namespace IfinionBackendAssessment.Service.WishListServices
                     Message = "You do not have an item in wishlist"
                 };
             response = mapper.Map<List<WishlistResponseDto>>(wishlistItems);
+            cacheService.SaveToCache(wishlistItems, CacheKey);
+
             return new APIResponse<List<WishlistResponseDto>>
             {
                 IsSuccessful = true,

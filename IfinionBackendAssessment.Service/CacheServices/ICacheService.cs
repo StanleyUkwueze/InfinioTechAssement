@@ -1,16 +1,10 @@
 ﻿using IfinionBackendAssessment.Entity.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace IfinionBackendAssessment.Service.CacheService
 {
-    public interface ICacheService
+    public interface ICacheService<T> where T : class
     {
-        List<Product> GetProductFromCacheAsyc(int itemId);
-        List<Product> GetProductsFromCacheAsyc();
-        void SaveToCache(List<Product> data, string key);
+        List<T> GetDataFromCacheAsyc(string CacheKey);
+        void SaveToCache(List<T> data, string key);
     }
 }
