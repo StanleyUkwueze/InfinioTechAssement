@@ -12,6 +12,7 @@ namespace IfinionBackendAssessment.API.Controllers
     public class WishlistController(IWishListService wishListService) : ControllerBase
     {
         [Authorize(Roles = Roles.Customer)]
+        [ValidateAntiForgeryToken]
         [HttpPost]
         public async Task<IActionResult> AddItemToWishList([FromForm] AddWishlistDto addWishlistDto)
         {

@@ -38,7 +38,7 @@ namespace IfinionBackendAssessment.API.Controllers
 
 
         [Authorize(Roles = Roles.Customer)]
-        [HttpGet("{itemId}")]
+        [HttpPut("{itemId}")]
         public async Task<IActionResult> UpdateCartItem(int itemId, bool isIncreament)
         {
             var result = await _cartRepo.UpdateItemQuantity(itemId, isIncreament);

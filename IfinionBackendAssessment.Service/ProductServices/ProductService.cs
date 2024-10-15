@@ -1,8 +1,9 @@
 ﻿using AutoMapper;
 using Azure;
+using IfinionBackendAssessment.DataAccess.CategoryRepository;
 using IfinionBackendAssessment.DataAccess.Common;
 using IfinionBackendAssessment.DataAccess.DataTransferObjects;
-using IfinionBackendAssessment.DataAccess.UnitOfWork;
+using IfinionBackendAssessment.DataAccess.ProductRepository;
 using IfinionBackendAssessment.Entity.Entities;
 using IfinionBackendAssessment.Service.Common;
 using IfinionBackendAssessment.Service.DataTransferObjects.Responses;
@@ -13,13 +14,15 @@ namespace IfinionBackendAssessment.Service.ProductServices
 {
     public class ProductService:IProductService
     {
-        private readonly IUnitOfWork _unitOfWork;
         private readonly IphotoService _iphotoService;
+        private readonly IProductRepo _productRepo;
+        private readonly ICategoryRepo _categoryRepo;
         private readonly IMapper _mapper;
-        public ProductService(IUnitOfWork unitOfWork, IphotoService iphotoService, IMapper mapper)
+        public ProductService(IphotoService iphotoService, IProductRepo productRepo, ICategoryRepo categoryRepo, IMapper mapper)
         {
-            _unitOfWork = unitOfWork;
             _iphotoService = iphotoService;
+            _productRepo = productRepo;
+            _categoryRepo = categoryRepo;
             _mapper = mapper;
         }
         public async Task<APIResponse<ProductResponseDto>> AddProduct(AddProductDto productDto, IFormFile? Image)
@@ -28,7 +31,7 @@ namespace IfinionBackendAssessment.Service.ProductServices
 
             if (productDto == null) return new APIResponse<ProductResponseDto> { IsSuccessful = false, Message = "Kindly provide data needed" };
 
-            var productCategory = await _unitOfWork.CategoryRepo.GetCategoryByName(productDto.CategoryName);
+            var productCategory = await _categoryRepo.GetCategoryByName(productDto.CategoryName);
             if (productCategory is null)
             {
                 response.IsSuccessful = false;
@@ -49,10 +52,8 @@ namespace IfinionBackendAssessment.Service.ProductServices
             productToAdd.Category = productCategory;
             productToAdd.ImageUrl = imageUrl;
             productToAdd.Count = productDto.Quantity;
-            productToAdd.DateCreated = DateTime.UtcNow;
-            productToAdd.DateUpdated = DateTime.UtcNow;
 
-            var isAdded = await _unitOfWork.ProductRepo.AddAsync(productToAdd);
+            var isAdded = await _productRepo.AddAsync(productToAdd);
 
             if (isAdded)
             {
@@ -82,7 +83,7 @@ namespace IfinionBackendAssessment.Service.ProductServices
                 var imageResult = await _iphotoService.AddPhotoAsync(Image!);
                 imageUrl = imageResult?.Url?.ToString();
             }
-            var isProductUpdated = await _unitOfWork.ProductRepo.Update(updateProductDto, id, imageUrl);
+            var isProductUpdated = await _productRepo.Update(updateProductDto, id, imageUrl);
 
             if (isProductUpdated.Id > 0)
             {
@@ -106,7 +107,7 @@ namespace IfinionBackendAssessment.Service.ProductServices
 
         public async Task<APIResponse<ProductResponseDto>> GetProductById(int Id)
         {
-            var Product = await _unitOfWork.ProductRepo.GetById(Id);
+            var Product = await _productRepo.GetById(Id);
             if (Product == null) return new APIResponse<ProductResponseDto> { Message = "No product found", IsSuccessful = false, Errors = new string[] { "Product Not Found" } };
 
             var ProductToReturn = _mapper.Map<ProductResponseDto>(Product);
@@ -120,10 +121,10 @@ namespace IfinionBackendAssessment.Service.ProductServices
         }
         public async Task<APIResponse<string>> DeleteProduct(int Id)
         {
-            var productToDelete = _unitOfWork.ProductRepo.GetFirstOrDefauly(x => x.Id == Id);
+            var productToDelete = _productRepo.GetFirstOrDefauly(x => x.Id == Id);
             if (productToDelete != null)
             {
-                var isDeleted = await _unitOfWork.ProductRepo.RemoveAsync(productToDelete);
+                var isDeleted = await _productRepo.RemoveAsync(productToDelete);
                 if (!isDeleted) return new APIResponse<string> { IsSuccessful = true, Message = "Opps! Product could not be deleted", Errors = new string[] { "Product Not Found" } };
                 return new APIResponse<string> { IsSuccessful = true, Message = "Product deleted successfully" };
             }
@@ -136,8 +137,8 @@ namespace IfinionBackendAssessment.Service.ProductServices
             if (searchQuery.MaxPrice < 0 || searchQuery.MinPrice < 0) return new PagedResponse<ProductResponseDto> { IsSuccessful = false, Message = "Product price cannot be a negative value" };
             var productsToReturn = new PagedResponse<ProductResponseDto>();
 
-            var Products = _unitOfWork.ProductRepo.GetProductsWithSearch(searchQuery.Query, searchQuery.MinPrice, searchQuery.MaxPrice).Paginate(searchQuery.PageNumber, searchQuery.PageSize);
-            if (Products.Result.Count < 1) return new PagedResponse<ProductResponseDto> { Message = "No product found", Errors = new string[] { "Product Not Found" } };
+            var Products = _productRepo.GetProductsWithSearch(searchQuery.Query, searchQuery.MinPrice, searchQuery.MaxPrice).Paginate(searchQuery.PageNumber, searchQuery.PageSize);
+            if (Products is null || Products.Result.Count < 1) return new PagedResponse<ProductResponseDto> { Message = "No product found", Errors = new string[] { "Product Not Found" } };
 
             foreach (var prod in Products.Result)
             {
@@ -148,7 +149,9 @@ namespace IfinionBackendAssessment.Service.ProductServices
 
             productsToReturn.IsSuccessful = true;
             productsToReturn.Message = "Successfully fetched all products";
-
+            productsToReturn.TotalRecords = Products.Result.Count;
+            productsToReturn.PageSize =searchQuery.PageSize;
+            productsToReturn.CurrentPage = searchQuery.PageNumber;
             return productsToReturn;
         }
 

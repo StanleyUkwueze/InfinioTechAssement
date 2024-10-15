@@ -1,39 +1,32 @@
 ﻿using AutoMapper;
 using IfinionBackendAssessment.DataAccess.Common;
 using IfinionBackendAssessment.DataAccess.UserRepository;
+using IfinionBackendAssessment.Entity.Constants;
 using IfinionBackendAssessment.Entity.Entities;
+using IfinionBackendAssessment.Service.Common;
 using IfinionBackendAssessment.Service.DataTransferObjects.Requests;
 using IfinionBackendAssessment.Service.DataTransferObjects.Responses;
 using IfinionBackendAssessment.Service.JWT;
 using IfinionBackendAssessment.Service.MailService;
-using System.Text.Encodings.Web;
 
 namespace IfinionBackendAssessment.Service.UserService
 {
-    public class UserService(IUserRepository userRepository,IEMailService eMailService, IJWTService jWTService, IMapper mapper) : IUserService
+    public class UserService(IUserRepository userRepository, IEMailService eMailService, IJWTService jWTService, HelperMethods helperMethods, IMapper mapper) : IUserService
     {
         public async Task<APIResponse<CreatedUserResponse>> CreateUser(CreateUserRequest createUserRequest)
         {
             var response = new APIResponse<CreatedUserResponse>();
             try
             {
-                var isValid = UserDataValidation(createUserRequest);
+                var isValid = await UserDataValidation(createUserRequest);
                 if (!isValid.IsSuccessful) return isValid;
-
-                var existingUser = await userRepository.GetUserByEmailOrUserName(createUserRequest.Email.Trim());
-                if (existingUser is not null)
-                    return new APIResponse<CreatedUserResponse>
-                    {
-                        IsSuccessful = false,
-                        Message = "User email already exist",
-                    };
 
                 var user = new User
                 {
                     UserName = createUserRequest.UserName.Trim(),
                     Email = createUserRequest.Email.Trim(),
                     PaswordHash = BCrypt.Net.BCrypt.HashPassword(createUserRequest.Password),
-                    Role = "Customer",
+                    Role = Roles.Customer,
                 };
 
                 var userCreated = await userRepository.AddAsync(user);
@@ -43,8 +36,8 @@ namespace IfinionBackendAssessment.Service.UserService
                     Message = "User creation failed",
                 };
 
-                var res = await SendMailAsync(createUserRequest.Email, "Welcome Message",
-                    $"Hi {createUserRequest.UserName}, \nThank you for your successful registration on our platform.\nWe're here to serve you better.\nRegards");
+                var res = await SendMailAsync(createUserRequest.Email, EmailSubjects.WelcomeMessage,
+                    $"Hi {createUserRequest.UserName}, \n{EmailContent.WelcomeMessage}");
 
                 var createdUserResponse = mapper.Map<CreatedUserResponse>(user);
                 return new APIResponse<CreatedUserResponse>
@@ -56,7 +49,8 @@ namespace IfinionBackendAssessment.Service.UserService
             }
             catch(Exception exc)
             {
-                response.Message = $"User registration successful but an exception occured during WelCome Message: {exc.Message}"; 
+                response.Message = $"User registration successful but an exception " +
+                    $"occured while sending WelCome Message: {exc.Message}"; 
             }
 
             response.IsSuccessful = false;
@@ -68,7 +62,7 @@ namespace IfinionBackendAssessment.Service.UserService
         {
           if(string.IsNullOrEmpty(email)) return new APIResponse<UserResponse> { IsSuccessful = false, Message = "Email cannot be empty"};
 
-          var user = await userRepository.GetUserByEmailOrUserName(email);
+          var user = await userRepository.GetUserByEmail(email);
             if (user is null) return new APIResponse<UserResponse> { IsSuccessful = false, Message = "No user found with the provided email" };
             var userResponse = mapper.Map<UserResponse>(user);
             return new APIResponse<UserResponse> { IsSuccessful = true, Data = userResponse, Message = "User fetched"};
@@ -80,7 +74,7 @@ namespace IfinionBackendAssessment.Service.UserService
                 return new APIResponse<UserResponse> { IsSuccessful = false, Message = "Kindly provide a valid email" };
             if (string.IsNullOrEmpty(request.Password))
                 return new APIResponse<UserResponse> { IsSuccessful = false, Message = "Kindly provide a valid password" };
-            var user = await userRepository.GetUserByEmailOrUserName(request.Email);
+            var user = await userRepository.GetUserByEmail(request.Email);
             if (user is null)
                 return new APIResponse<UserResponse> { IsSuccessful = false, Message = "No user found with the provided details" };
             if (!BCrypt.Net.BCrypt.Verify(request.Password, user.PaswordHash))
@@ -112,14 +106,22 @@ namespace IfinionBackendAssessment.Service.UserService
             await eMailService.SendEmailAsync(emailMessage);
             return true;
         }
-        private static APIResponse<CreatedUserResponse> UserDataValidation(CreateUserRequest createUserRequest)
+        private async Task<APIResponse<CreatedUserResponse>> UserDataValidation(CreateUserRequest createUserRequest)
         {
             if (string.IsNullOrEmpty(createUserRequest.Email))
                 return new APIResponse<CreatedUserResponse>
                 {
                     IsSuccessful = false,
+                    Message = "Kindly provide an email"
+                };
+
+            if (!helperMethods.IsValidEmail(createUserRequest.Email))
+                return new APIResponse<CreatedUserResponse>
+                {
+                    IsSuccessful = false,
                     Message = "Kindly provide a valid email"
                 };
+
             if (string.IsNullOrEmpty(createUserRequest.UserName))
                 return new APIResponse<CreatedUserResponse>
                 {
@@ -133,6 +135,29 @@ namespace IfinionBackendAssessment.Service.UserService
                     IsSuccessful = false,
                     Message = "Kindly provide a valid Password"
                 };
+            if (!helperMethods.IsStrongPassword(createUserRequest.Password))
+                return new APIResponse<CreatedUserResponse>
+                {
+                    IsSuccessful = false,
+                    Message = @"Kindly provide a strong password:Must be atleast 8 characters length, Contains uppercase letters, Contains lowercase letters, Contains digits, Contains special characters"
+                };
+
+            var existingUser = await userRepository.GetUserByEmail(createUserRequest.Email.Trim());
+            if (existingUser is not null)
+                return new APIResponse<CreatedUserResponse>
+                {
+                    IsSuccessful = false,
+                    Message = "User email already exist",
+                };
+
+            existingUser = await userRepository.GetUserByUserName(createUserRequest.UserName.Trim());
+            if (existingUser is not null)
+                return new APIResponse<CreatedUserResponse>
+                {
+                    IsSuccessful = false,
+                    Message = "User name already exist",
+                };
+
             return new APIResponse<CreatedUserResponse> { IsSuccessful = true };
         }
     }

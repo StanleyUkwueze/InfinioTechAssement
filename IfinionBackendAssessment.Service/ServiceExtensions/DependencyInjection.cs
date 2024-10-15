@@ -3,7 +3,6 @@ using IfinionBackendAssessment.DataAccess.CartRepository;
 using IfinionBackendAssessment.DataAccess.CategoryRepository;
 using IfinionBackendAssessment.DataAccess.ProductRepository;
 using IfinionBackendAssessment.DataAccess.Repository;
-using IfinionBackendAssessment.DataAccess.UnitOfWork;
 using IfinionBackendAssessment.DataAccess.UserRepository;
 using IfinionBackendAssessment.DataAccess.WishListRepository;
 using IfinionBackendAssessment.Service.CategoryServices;
@@ -33,7 +32,6 @@ namespace IfinionBackendAssessment.Service.ServiceExtensions
             Services.AddScoped<IProductService, ProductService>();
             Services.AddScoped<IProductRepo, ProductRepo>();
             Services.AddScoped<ICategoryRepo, CategoryRepo>();
-            Services.AddScoped<IUnitOfWork, UnitOfWork>();
             Services.AddScoped<ICartRepo, CartRepo>();
             Services.AddScoped<HelperMethods>();
             Services.AddScoped<ICategoryService, CategoryService>();

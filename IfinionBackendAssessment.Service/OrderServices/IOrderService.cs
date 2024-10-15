@@ -10,6 +10,6 @@ namespace IfinionBackendAssessment.Service.OrderServices
         Task<APIResponse<CheckoutResponse>> PlaceOrderAsync(PlaceOrderRequestModel PlaceOrderRequestModel);
         Task<APIResponse<string>> EditOrderStatus(int orderId, string status);
         Task<APIResponse<List<OrderResponseDto>>> GetUserOrders();
-        Task<Order> GetUserOrderAsync(int orderId);
+        Task<APIResponse<OrderResponseDto>> GetUserOrderAsync(int orderId);
     }
 }

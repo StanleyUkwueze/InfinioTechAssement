@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace IfinionBackendAssessment.Service.Common
@@ -39,6 +40,30 @@ namespace IfinionBackendAssessment.Service.Common
         public async Task<bool> Save()
         {
             return await _context.SaveChangesAsync() > 0 ? true : false;
+        }
+
+        public bool IsValidEmail(string email)
+        {
+            if (string.IsNullOrWhiteSpace(email))
+                return false;
+
+            string pattern = @"^[^@\s]+@[^@\s]+\.[^@\s]+$";
+            Regex regex = new Regex(pattern);
+
+            return regex.IsMatch(email);
+        }
+
+        public bool IsStrongPassword(string password)
+        {
+            if (string.IsNullOrWhiteSpace(password) || password.Length < 8)
+                return false;
+
+            bool hasUpperCase = Regex.IsMatch(password, "[A-Z]");
+            bool hasLowerCase = Regex.IsMatch(password, "[a-z]");
+            bool hasDigit = Regex.IsMatch(password, @"\d");
+            bool hasSpecialChar = Regex.IsMatch(password, @"[!@#$%^&*(),.?""':;{}|<>]");
+
+            return hasUpperCase && hasLowerCase && hasDigit && hasSpecialChar;
         }
     }
 }

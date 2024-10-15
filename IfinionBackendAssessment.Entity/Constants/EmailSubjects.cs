@@ -13,4 +13,9 @@ namespace IfinionBackendAssessment.Entity.Constants
         public const string OrderShipmentNotification = "Order Shipment Notification";
         public const string OrderDeliveryNotification = "Order Delivery Notification";
     }
+
+    public static class EmailContent
+    {
+        public const string WelcomeMessage = "Thank you for your successful registration on our platform.\nWe're here to serve you better.\nRegards";
+    }
 }

@@ -49,11 +49,12 @@ namespace IfinionBackendAssessment.Service.WishListServices
                 };
 
             var wishItem = await wishListRepo.GetWishlistByItemId(addWishlistDto.ProductId);
+            var isSaved = false;
 
             if (wishItem is not null)
             {
                 wishItem.Quantity++;
-               await wishListRepo.UpdateAsync(wishItem);
+                isSaved = await wishListRepo.UpdateAsync(wishItem);
             }
             else
             {
@@ -63,12 +64,13 @@ namespace IfinionBackendAssessment.Service.WishListServices
                     Quantity = 1,
                     Price = item.Price,
                     ProductName = item.Name,
-                    CustomerId = user.Item1
+                    CustomerId = user.Item1,
+                    ProductId = addWishlistDto.ProductId
                 };
-                await wishListRepo.AddAsync(wishItem);
+
+               isSaved = await wishListRepo.AddAsync(wishItem);
             }
 
-            var isSaved = await wishListRepo.SaveAsync();
             if (isSaved)
             {
                 response = mapper.Map<WishlistResponseDto>(wishItem);
@@ -109,7 +111,7 @@ namespace IfinionBackendAssessment.Service.WishListServices
 
             var wishlistItems = await wishListRepo.GetAll().Where(x => x.CustomerId == user.Item1).ToListAsync();
 
-            if(wishlistItems is null || wishlistItems.Count > 0)
+            if(wishlistItems is null || wishlistItems.Count <= 0)
                 return new APIResponse<List<WishlistResponseDto>>
                 {
                     IsSuccessful = false,
@@ -156,8 +158,8 @@ namespace IfinionBackendAssessment.Service.WishListServices
                     IsSuccessful = false,
                     Message = "No item found to remove"
                 };
-           await wishListRepo.RemoveAsync(itemToRemove);
-           var isSaved =  await wishListRepo.SaveAsync();
+            var isSaved = await wishListRepo.RemoveAsync(itemToRemove);
+
             if (isSaved)
             {
                 return new APIResponse<string>

@@ -21,7 +21,6 @@ namespace IfinionBackendAssessment.Service.CategoryServices
             if (existingCategory is not null) return new APIResponse<AddCategoryResponse> { IsSuccessful = false, Message = "Category already taken" };
 
             var catToAdd = mapper.Map<AddCategoryDto, Category>(categoryDto);
-            catToAdd.DateUpdated = DateTime.Now;
 
             var isAdded = await categoryRepo.AddAsync(catToAdd);
             if (isAdded)
