@@ -13,6 +13,7 @@ using IfinionBackendAssessment.Service.MailService;
 using IfinionBackendAssessment.Service.TransactionServices;
 using Microsoft.EntityFrameworkCore;
 using System;
+using System.Net.Mail;
 using static IfinionBackendAssessment.Service.MailService.EMailService;
 
 namespace IfinionBackendAssessment.Service.OrderServices
@@ -31,100 +32,113 @@ namespace IfinionBackendAssessment.Service.OrderServices
         public async Task<APIResponse<CheckoutResponse>> PlaceOrderAsync(PlaceOrderRequestModel PlaceOrderRequestModel)
         {
             var response = new CheckoutResponse();
-            var userId = helperMethods.GetUserId();
+            var result = new APIResponse<CheckoutResponse>();
 
-            var shoppingCart = await helperMethods.GetUserCart(userId.Item1);
-
-            var scope = _context.Database.BeginTransaction();
-            var order = new Order
+            var emailRespone = string.Empty;
+            try
             {
-                CustomerId = userId.Item1,
-                TotalPrice = shoppingCart.TotalPrice,
-                OrderStatus = OrderStatus.Processing.ToString(),
-                TrackingId = GenerateTrackingId(),
-                State = PlaceOrderRequestModel.State,
-                City = PlaceOrderRequestModel.City,
-                Town = PlaceOrderRequestModel.Town,
-                Street = PlaceOrderRequestModel.Street,
-                IsPaid = false,
+                var userId = helperMethods.GetUserId();
 
-            };
+                var shoppingCart = await helperMethods.GetUserCart(userId.Item1);
 
-            _context.Orders.Add(order);
-            await helperMethods.Save();
-
-            if (shoppingCart.CartDetails!.Count < 1)
-                return new APIResponse<CheckoutResponse>
-                { 
-                    Message = "Kindly add items to your shopping cart before attempting placing an order",
-                    IsSuccessful = false 
-                };
-
-            foreach(var cartItem in shoppingCart.CartDetails)
-            {
-                var orderItem = new OrderItem
+                var scope = _context.Database.BeginTransaction();
+                var order = new Order
                 {
-                    ProductId = cartItem.ProductId,
-                    Quantity = cartItem.Quantity,
-                    Price = cartItem.Price,
-                    OrderId = order.Id,
-                    ImageUrl = cartItem.ImageUrl
+                    CustomerId = userId.Item1,
+                    TotalPrice = shoppingCart.TotalPrice,
+                    OrderStatus = OrderStatus.Processing.ToString(),
+                    TrackingId = GenerateTrackingId(),
+                    State = PlaceOrderRequestModel.State,
+                    City = PlaceOrderRequestModel.City,
+                    Town = PlaceOrderRequestModel.Town,
+                    Street = PlaceOrderRequestModel.Street,
+                    IsPaid = false,
+
                 };
-                order.OrderItems.Add(orderItem);
-                _context.OrderItems.Add(orderItem);
+
+                _context.Orders.Add(order);
+                await helperMethods.Save();
+
+                if (shoppingCart.CartDetails!.Count < 1)
+                    return new APIResponse<CheckoutResponse>
+                    {
+                        Message = "Kindly add items to your shopping cart before attempting placing an order",
+                        IsSuccessful = false
+                    };
+
+                foreach (var cartItem in shoppingCart.CartDetails)
+                {
+                    var orderItem = new OrderItem
+                    {
+                        ProductId = cartItem.ProductId,
+                        Quantity = cartItem.Quantity,
+                        Price = cartItem.Price,
+                        OrderId = order.Id,
+                        ImageUrl = cartItem.ImageUrl
+                    };
+                    order.OrderItems.Add(orderItem);
+                    _context.OrderItems.Add(orderItem);
+                }
+
+                _context.Orders.Update(order);
+                if (!await helperMethods.Save()) return new APIResponse<CheckoutResponse> { Message = "Order failed to be placed", IsSuccessful = false };
+
+                //payment
+                var transactionDto = new TransactionDto
+                {
+                    Name = PlaceOrderRequestModel.Name,
+                    Email = PlaceOrderRequestModel.Email,
+                    Amount = shoppingCart.TotalPrice,
+                    OrderId = order.Id,
+                };
+                var transaction = await transactionService.InitiatePayment(transactionDto, userId.Item1);
+
+                if (!transaction.IsSuccessful)
+                {
+                    scope.Rollback();
+                    return new APIResponse<CheckoutResponse> { Data = response, Message = "Transaction failed", IsSuccessful = false };
+                }
+
+                //remove items from the cart
+                shoppingCart.CartDetails.RemoveRange(0, shoppingCart.CartDetails.Count);
+                _context.CartDetails.RemoveRange(shoppingCart.CartDetails);
+                shoppingCart.TotalPrice = 0;
+                _context.ShoppingCarts.Update(shoppingCart);
+                _context.SaveChanges();
+                scope.Commit();
+
+                response = mapper.Map<CheckoutResponse>(order);
+                response.AuthorizationUrl = transaction.Data.Data.AuthorizationUrl;
+                response.Reference = transaction.Data.Data.Reference;
+
+                var orderDetails = mapper.Map<OrderDetails>(response);
+
+                // notify the admin via email service
+                var emailMessage = new EmailMessage
+                {
+                    To = Emails.AdminEmail,
+                    Subject = EmailSubjects.OrderPlcacementNotifcation
+                };
+
+
+                emailRespone = await eMailService.NotifyAdminOfOrderPlacement(orderDetails, emailMessage);
+                // notify the customer via email service
+                emailMessage = new EmailMessage
+                {
+                    To = PlaceOrderRequestModel.Email!,
+                    Subject = EmailSubjects.OrderPlcacementNotifcation
+                };
+
+                emailRespone = await eMailService.NotifyCustomerOfOrderStatus(emailMessage, "placed", order.TrackingId);
+                return new APIResponse<CheckoutResponse> { Data = response, Message = "Order successfully placed", IsSuccessful = true };
             }
-
-            _context.Orders.Update(order);
-            if(!await helperMethods.Save()) return new APIResponse<CheckoutResponse> { Message = "Order failed to be placed", IsSuccessful = false };
-
-            //payment
-            var transactionDto = new TransactionDto
+            catch (Exception ex)
             {
-                Name = PlaceOrderRequestModel.Name,
-                Email = PlaceOrderRequestModel.Email,
-                Amount = shoppingCart.TotalPrice,
-                OrderId = order.Id,
-            };
-            var transaction = await transactionService.InitiatePayment(transactionDto, userId.Item1);
-
-            if(!transaction.IsSuccessful)
-            {
-                scope.Rollback();
-                return new APIResponse<CheckoutResponse> { Data = response, Message = "Transaction failed", IsSuccessful = false };
+                result.Message = string.IsNullOrEmpty(emailRespone) ? $"Order successfully placed but order placement notification failed: {ex.Message}" : $"An error occured: {ex.Message}";
+                result.IsSuccessful = string.IsNullOrEmpty(emailRespone) ? false : true;
+                result.Data = response;
             }
-            
-            //remove items from the cart
-            shoppingCart.CartDetails.RemoveRange(0, shoppingCart.CartDetails.Count);
-            _context.CartDetails.RemoveRange(shoppingCart.CartDetails);
-            shoppingCart.TotalPrice = 0;
-            _context.ShoppingCarts.Update(shoppingCart);
-            _context.SaveChanges();
-            scope.Commit();
-
-            response = mapper.Map<CheckoutResponse>(order);
-            response.AuthorizationUrl = transaction.Data.Data.AuthorizationUrl;
-            response.Reference = transaction.Data.Data.Reference;
-
-            var orderDetails = mapper.Map<OrderDetails>(response);
-
-            // notify the admin via email service
-            var emailMessage = new EmailMessage
-            {
-                To = Emails.AdminEmail,
-                Subject = EmailSubjects.OrderPlcacementNotifcation
-            };
-
-     
-            await eMailService.NotifyAdminOfOrderPlacement(orderDetails, emailMessage);
-            // notify the customer via email service
-             emailMessage = new EmailMessage
-            {
-                To = PlaceOrderRequestModel.Email!,
-                Subject = EmailSubjects.OrderPlcacementNotifcation
-            };
-
-            await eMailService.NotifyCustomerOfOrderStatus(emailMessage, "placed", order.TrackingId);
-            return new APIResponse<CheckoutResponse> { Data = response, Message = "Order successfully placed", IsSuccessful = true };
+           return result;
         }
 
 
@@ -190,7 +204,7 @@ namespace IfinionBackendAssessment.Service.OrderServices
             }
            
 
-            if (myOrders is null)
+            if (myOrders is null || myOrders.Count < 1)
                 return new APIResponse<List<OrderResponseDto>>
                 {
                     IsSuccessful = false,
@@ -205,36 +219,110 @@ namespace IfinionBackendAssessment.Service.OrderServices
             };
         }
 
-        public async Task<APIResponse<string>> EditOrderStatus(int orderId, string status)
+        public async Task<APIResponse<OrderResponseDto>> EditOrderStatus(int orderId, string status)
         {
+            Order? order = null;
+            var emailResponse = string.Empty;
+            var emailMessage = new EmailMessage();
+            var orderToReturn = new OrderResponseDto();
+            var result = new APIResponse<OrderResponseDto>();
+
+            try
+            {
+                var orderStatusValidation = OrderStatusValidations(_context, orderId, status, out order);
+
+                if (!orderStatusValidation.IsSuccessful) return orderStatusValidation;
+
+                if (status.ToLower() == OrderStatus.Delivered.ToString().ToLower())
+                {
+                    var customer = await userRepository.GetUserById(order.CustomerId);
+
+                    if (customer is not null)
+                    {
+                         emailMessage = new EmailMessage
+                        {
+                            Subject = EmailSubjects.OrderDeliveryNotification,
+                            To = customer.Email
+                        };
+                        await eMailService.NotifyCustomerOfOrderStatus(emailMessage, status, order.TrackingId);
+                    }
+
+                    order.DateDelivered = DateTime.Now;
+                }
+                if (status.ToLower() == OrderStatus.Shipped.ToString().ToLower())
+                {
+                    var customer = await userRepository.GetUserById(order.CustomerId);
+
+                    if (customer is not null)
+                    {
+                         emailMessage = new EmailMessage
+                        {
+                            Subject = EmailSubjects.OrderShipmentNotification,
+                            To = customer.Email
+                        };
+                    
+                    }
+                    order.DateShipped = DateTime.Now;
+
+                }
+                order.OrderStatus = status;
+                order.DateUpdated = DateTime.Now;
+
+                _context.Orders.Update(order);
+                var update = await _context.SaveChangesAsync();
+
+                if (update > 0)
+                {
+                    orderToReturn = mapper.Map<OrderResponseDto>(order);
+                    emailResponse = await eMailService.NotifyCustomerOfOrderStatus(emailMessage, status, order.TrackingId);
+                    return new APIResponse<OrderResponseDto> { IsSuccessful = true, Data = orderToReturn, Message = "Order status Successfully updated" };
+                }
+               
+                return new APIResponse<OrderResponseDto> { IsSuccessful = false, Message = "Order status update failed" };
+            }
+            catch (Exception ex)
+            {
+                orderToReturn = mapper.Map<OrderResponseDto>(order);
+                result.Message = !string.IsNullOrEmpty(emailResponse) ? $"An error occured: {ex.Message}": $"Order status successfully updated but order status notification email failed: {ex.Message}";
+                result.IsSuccessful = false;
+                result.Data = orderToReturn;
+            }
+            return result;
+        }
+
+        private APIResponse<OrderResponseDto> OrderStatusValidations(AppDbContext _context, int orderId, string status, out Order? order)
+        {
+            var response = new APIResponse<OrderResponseDto> { IsSuccessful = true };
+          
+            order =  _context.Orders.FirstOrDefault(x => x.Id == orderId);
+
+            if (order == null) return new APIResponse<OrderResponseDto> { IsSuccessful = false, Message = $"Order {orderId} is not found." };
             if (!Enum.IsDefined(typeof(OrderStatus), status))
-                return new APIResponse<string>
-                { 
-                    IsSuccessful = false, 
+                return new APIResponse<OrderResponseDto>
+                {
+                    IsSuccessful = false,
                     Message = $"Invalid orderStatus. Valid status: " +
                     $"{OrderStatus.Processing.ToString()}, {OrderStatus.Delivered.ToString()}," +
-                    $" {OrderStatus.Shipped.ToString()}" 
+                    $" {OrderStatus.Shipped.ToString()}"
                 };
+
             if (status.ToLower() == OrderStatus.Processing.ToString().ToLower())
             {
-                return new APIResponse<string>
+                return new APIResponse<OrderResponseDto>
                 {
                     Message = $"An order is of status {OrderStatus.Processing.ToString()} by default",
                     IsSuccessful = false
                 };
             }
-                var order = await _context.Orders.FirstOrDefaultAsync(x => x.Id == orderId);
-            if (order == null) return new APIResponse<string> { IsSuccessful = false, Message = $"Order {orderId} is not found." };
 
-
-            if (order.OrderStatus.ToLower() == OrderStatus.Delivered.ToString().ToLower() 
-                && 
-                (status.ToLower() == OrderStatus.Delivered.ToString().ToLower() 
+            if (order.OrderStatus.ToLower() == OrderStatus.Delivered.ToString().ToLower()
+                &&
+                (status.ToLower() == OrderStatus.Delivered.ToString().ToLower()
                 || status.ToLower() == OrderStatus.Shipped.ToString().ToLower()
                 || status.ToLower() == OrderStatus.Processing.ToString().ToLower()
-                )) 
-                return new APIResponse<string> 
-                { 
+                ))
+                return new APIResponse<OrderResponseDto>
+                {
                     Message = "This order had already been marked delivered",
                     IsSuccessful = false
                 };
@@ -244,49 +332,17 @@ namespace IfinionBackendAssessment.Service.OrderServices
                (status.ToLower() == OrderStatus.Shipped.ToString().ToLower()
                || status.ToLower() == OrderStatus.Processing.ToString().ToLower()
                )
-               ) return new APIResponse<string> { Message = "This order had already been marked shipped", IsSuccessful = false };
+               ) return new APIResponse<OrderResponseDto> { Message = "This order had already been marked shipped", IsSuccessful = false };
 
-                if(status.ToLower() == OrderStatus.Delivered.ToString().ToLower())
-                {
-                  var customer = await userRepository.GetUserById(order.CustomerId);
+            if (order.OrderStatus.ToLower() == OrderStatus.Processing.ToString().ToLower()
+                && status.ToLower() == OrderStatus.Delivered.ToString().ToLower())
+            {
 
-                    if(customer is not null)
-                    {
-                        var emailMessage = new EmailMessage
-                        {
-                            Subject = EmailSubjects.OrderDeliveryNotification,
-                            To = customer.Email
-                       };
-                    await eMailService.NotifyCustomerOfOrderStatus(emailMessage, status, order.TrackingId);
-                    }
-               
-                    order.DateDelivered = DateTime.Now;
+                response.IsSuccessful = false;
+                response.Message = "This order is yet to be marked as shipped, hence cannot be marked as delivered";
                 
-                }
-                if (status.ToLower() == OrderStatus.Shipped.ToString().ToLower())
-                {
-                    var customer = await userRepository.GetUserById(order.CustomerId);
-
-                    if (customer is not null)
-                    {
-                        var emailMessage = new EmailMessage
-                        {
-                            Subject = EmailSubjects.OrderShipmentNotification,
-                            To = customer.Email
-                        };
-                    await eMailService.NotifyCustomerOfOrderStatus(emailMessage, status, order.TrackingId);
-                }
-                   order.DateShipped = DateTime.Now;
-                   
-                }
-                order.OrderStatus = status;
-                order.DateUpdated = DateTime.Now;
-
-                _context.Orders.Update(order);
-                var update = await _context.SaveChangesAsync();
-
-                if (update > 0) return new APIResponse<string> { IsSuccessful = true, Message = "Order status Successfully updated" };
-                return new APIResponse<string> { IsSuccessful = false, Message = "Order status update failed" };
+            }
+            return response;
         }
 
         private string GenerateTrackingId()

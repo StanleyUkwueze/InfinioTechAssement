@@ -8,7 +8,7 @@ namespace IfinionBackendAssessment.Service.OrderServices
     public interface IOrderService
     {
         Task<APIResponse<CheckoutResponse>> PlaceOrderAsync(PlaceOrderRequestModel PlaceOrderRequestModel);
-        Task<APIResponse<string>> EditOrderStatus(int orderId, string status);
+        Task<APIResponse<OrderResponseDto>> EditOrderStatus(int orderId, string status);
         Task<APIResponse<List<OrderResponseDto>>> GetUserOrders();
         Task<APIResponse<OrderResponseDto>> GetUserOrderAsync(int orderId);
     }
