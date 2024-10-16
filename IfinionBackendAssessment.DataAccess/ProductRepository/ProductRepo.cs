@@ -28,11 +28,13 @@ namespace IfinionBackendAssessment.DataAccess.ProductRepository
                 var lowerCaseTerm = searchTerm.Trim().ToLower();
                 products = products.Where(e => e.Name.ToLower().Contains(lowerCaseTerm)
                                         || e.Category.Name.ToLower().Contains(lowerCaseTerm));
-            }
 
-            if (minPrice > 0 || maxPrice > 0)
-            {
-                products = products.Where(x => x.Price >= minPrice && x.Price <= maxPrice);
+                if (minPrice > 0 || maxPrice > 0)
+                {
+                    products = products.Where(x => x.Price >= minPrice && x.Price <= maxPrice);
+                
+                }
+                return products;
             }
 
             return products;
