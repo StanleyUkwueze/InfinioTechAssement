@@ -23,7 +23,6 @@ namespace IfinionBackendAssessment.Service.MailService
             email.Subject = emailMessage.Subject;
             var builder = new BodyBuilder();
 
-
             builder.HtmlBody = emailMessage.Body;
             email.Body = builder.ToMessageBody();
 

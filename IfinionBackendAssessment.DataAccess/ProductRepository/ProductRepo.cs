@@ -39,14 +39,14 @@ namespace IfinionBackendAssessment.DataAccess.ProductRepository
         }
 
 
-        public async Task<Product> GetProductByName(string prodName)
+        public async Task<Product?> GetProductByName(string prodName)
         {
-            if (string.IsNullOrEmpty(prodName)) return new Product { };
+            if (string.IsNullOrEmpty(prodName)) return null;
 
             var result = await _context.Products.FirstOrDefaultAsync(c => c.Name == prodName);
             if (result != null) return result;
 
-            return new Product { };
+            return null;
         }
 
         public IQueryable<Product> GetAllProducts()

@@ -40,6 +40,7 @@ namespace IfinionBackendAssessment.Service.ProductServices
         public async Task<APIResponse<ProductResponseDto>> AddProduct(AddProductDto productDto, IFormFile? Image)
         {
            var response = new APIResponse<ProductResponseDto>();
+            var addedProduct = new ProductResponseDto();
 
             if (productDto == null) return new APIResponse<ProductResponseDto> { IsSuccessful = false, Message = "Kindly provide data needed" };
 
@@ -59,7 +60,27 @@ namespace IfinionBackendAssessment.Service.ProductServices
                 imageUrl = imageResult.Url.ToString();
             }
 
-            var productToAdd = _mapper.Map<AddProductDto, Product>(productDto);
+            var productToAdd = await _productRepo.GetProductByName(productDto.Name);
+            if(productToAdd is not null)
+            {
+                productToAdd.Count += productDto.Quantity;
+                productToAdd.DateUpdated = DateTime.Now;
+
+               if (await _productRepo.UpdateAsync(productToAdd))
+                {
+                    addedProduct = _mapper.Map<Product, ProductResponseDto>(productToAdd);
+                    response.IsSuccessful = true;
+                    response.Message = "This Product already exist: the Count/Quantity updated successfully";
+                    response.Data = addedProduct;
+                    return response;
+                }
+                response.IsSuccessful = false;
+                response.Message = "An error occured while trying to update the count of this product as it already exist";
+                response.Errors = new string[] { "Product quantity Not updated" };
+                return response;
+
+            }
+            productToAdd = _mapper.Map<AddProductDto, Product>(productDto);
             productToAdd.CategoryId = productCategory.Id;
             productToAdd.Category = productCategory;
             productToAdd.ImageUrl = imageUrl;
@@ -69,7 +90,7 @@ namespace IfinionBackendAssessment.Service.ProductServices
 
             if (isAdded)
             {
-                var addedProduct = _mapper.Map<Product, ProductResponseDto>(productToAdd);
+                addedProduct = _mapper.Map<Product, ProductResponseDto>(productToAdd);
                 response.IsSuccessful = true;
                 response.Message = "Product Added successfully";
                 response.Data = addedProduct;

@@ -41,7 +41,7 @@ namespace IfinionBackendAssessment.Service.TransactionServices
             _helperMethods = helperMethods;
             _configuration = configuration;
             token = _configuration["Payment:PaystackSK"]!;
-            baseUrl = _configuration.GetSection("baseUrl").Value!;
+            baseUrl = _configuration.GetSection("BaseUrl").Value!;
             Paystack = new PayStackApi(token);
         }
 
@@ -56,7 +56,7 @@ namespace IfinionBackendAssessment.Service.TransactionServices
                 Currency = "NGN"
             };
 
-            request.CallbackUrl = "https://localhost:7252/api/Order/verify-payment";
+            request.CallbackUrl = $"{baseUrl}/api/Orders/verify-payment";
 
             if (userId == 0)
             {

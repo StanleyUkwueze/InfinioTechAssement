@@ -9,6 +9,7 @@ namespace IfinionBackendAssessment.DataAccess.ProductRepository
         Task<Product> Update(UpdateProductDto product, int id, string? image);
         Task<Product> GetById(int id);
         IQueryable<Product> GetAllProducts();
+        Task<Product?> GetProductByName(string prodName);
         IQueryable<Product> GetProductsWithSearch(string? searchTerm, decimal minPrice, decimal maxPrice);
     }
 }
