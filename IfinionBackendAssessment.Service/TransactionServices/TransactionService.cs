@@ -53,10 +53,9 @@ namespace IfinionBackendAssessment.Service.TransactionServices
                 AmountInKobo = ((int)(transactionDto.Amount * 100)),
                 Email = transactionDto.Email,
                 Reference = ReferenceGenerator().ToString(),
-                Currency = "NGN"
+                Currency = "NGN",
+                CallbackUrl = $"{baseUrl}/api/Orders/verify-payment"
             };
-
-            request.CallbackUrl = $"{baseUrl}/api/Orders/verify-payment";
 
             if (userId == 0)
             {
@@ -83,7 +82,6 @@ namespace IfinionBackendAssessment.Service.TransactionServices
             response.RawJson = null;
             if (response.Status)
             {
-                order!.IsPaid = true;
 
                 _context.Orders.Update(order!);
 
@@ -150,6 +148,7 @@ namespace IfinionBackendAssessment.Service.TransactionServices
                     transaction.Status = true;
                     _context.Transactions.Update(transaction);
                     await _context.SaveChangesAsync();
+
                     var jsonResponese = JsonConvert.SerializeObject(response.Data);
                     result = JsonConvert.DeserializeObject<PaymentVerificationResponse>(jsonResponese);
 
